@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.umi/
+.umi-production/
+yarn-error.log
+*.log
+.env
+.env.local
+.env.development
+.env.production
+.DS_Store
+.cache/
+.mfsu/

@@ -1,0 +1,210 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'umi';
+import { Form, Select, Input, Button, message, Card, Upload } from 'antd';
+import { ArrowLeftOutlined, InboxOutlined } from '@ant-design/icons';
+import { deposit, upload } from '@/services/api';
+import { useI18n } from '../../locales/I18nContext';
+
+const { Dragger } = Upload;
+
+const DepositApply = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useI18n();
+  const [form] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
+  const [fileList, setFileList] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  // 重新申请：回显被拒记录的数据
+  useEffect(() => {
+    const rejected = location.state?.fromRejected;
+    if (rejected) {
+      form.setFieldsValue({
+        fromCurrency: rejected.fromCurrency,
+        fromAmount: rejected.fromAmount,
+        accountName: rejected.accountName,
+        bankCard: rejected.bankCard,
+        bankBranch: rejected.bankBranch,
+        bankAddress: rejected.bankAddress,
+        notes: rejected.notes,
+      });
+      if (Array.isArray(rejected.images)) {
+        setFileList(rejected.images.map((img, i) => {
+          const url = typeof img === 'string' ? img : img.url;
+          const name = typeof img === 'object' && img.name ? img.name : `${t('depositApply.file')} ${i + 1}`;
+          return { uid: `existing-${i}`, name, status: 'done', url };
+        }));
+      }
+    }
+  }, [location.state]);
+
+  // 上传前校验
+  const beforeUpload = (file) => {
+    const isValidType = file.type === 'application/pdf' || file.type.startsWith('image/');
+    if (!isValidType) {
+      message.error('只支持 PDF 和图片文件');
+      return Upload.LIST_IGNORE;
+    }
+    const isLt10M = file.size / 1024 / 1024 < 10;
+    if (!isLt10M) {
+      message.error(t('depositApply.fileSizeLimit'));
+      return Upload.LIST_IGNORE;
+    }
+    if (fileList.length >= 5) {
+      message.error(t('depositApply.maxFiles'));
+      return Upload.LIST_IGNORE;
+    }
+    return true;
+  };
+
+  const handleUpload = async (file) => {
+    setUploading(true);
+    try {
+      const res = await upload([file]);
+      const data = Array.isArray(res.data) ? res.data : [res.data];
+      const newFile = {
+        uid: file.uid,
+        name: file.name,
+        status: 'done',
+        url: data[0]?.url,
+        ossKey: data[0]?.ossKey,
+        originalName: data[0]?.originalName || file.name,
+      };
+      setFileList(prev => [...prev, newFile]);
+      return newFile;
+    } catch (e) {
+      message.error(`${file.name} ${t('depositApply.uploadFailed')}`);
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemove = (file) => {
+    setFileList(prev => prev.filter(f => f.uid !== file.uid));
+  };
+
+  const handleSubmit = async (values) => {
+    if (uploading) {
+      message.warning(t('depositApply.uploadPending'));
+      return;
+    }
+    const validFiles = fileList.filter(f => f.status === 'done' && f.url);
+    if (validFiles.length === 0) {
+      message.error(t('depositApply.uploadProofRequired'));
+      return;
+    }
+    const user = JSON.parse(localStorage.getItem('clientUser') || '{}');
+    setSubmitting(true);
+    try {
+      const images = validFiles.map(f => ({ url: f.url, name: f.originalName || f.name }));
+      await deposit.create({ ...values, images, channel: user.channel, salesToken: user.salesToken });
+      message.success(t('depositApply.success'));
+      navigate('/client/deposit');
+    } catch (e) {
+      message.error(e.message || '申请失败');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(160deg, #f5f7fa 0%, #eceef5 100%)', padding: '24px 32px' }}>
+      <div style={{ width: '80%', maxWidth: 750, margin: '0 auto' }}>
+
+        {/* 顶部 */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20, gap: 8 }}>
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/client/deposit')} style={{ color: '#667eea', fontSize: 14 }}>
+            返回
+          </Button>
+          <span style={{ color: '#d0d0d8' }}>/</span>
+          <span style={{ color: '#667eea', fontSize: 14, fontWeight: 500 }}>入金</span>
+          <span style={{ color: '#d0d0d8' }}>/</span>
+          <span style={{ color: '#333', fontSize: 14, fontWeight: 500 }}>申请</span>
+        </div>
+
+        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: 16, padding: '24px 28px', marginBottom: 20, color: '#fff', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: -30, right: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+          <div style={{ position: 'absolute', bottom: -40, right: 80, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+          <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0, marginBottom: 6, position: 'relative' }}>申请入金</h1>
+          <div style={{ fontSize: 13, opacity: 0.85, position: 'relative' }}>{t('depositApply.subtitle')}</div>
+        </div>
+
+        <Card style={{ borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
+          <Form form={form} layout="horizontal" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} style={{ marginTop: 8 }}>
+            <Form.Item label={t('depositApply.currency')} name="fromCurrency" rules={[{ required: true, message: t('depositApply.currencySelect') }]}>
+              <Select placeholder="请选择" allowClear size="large" options={[
+                { value: 'USD', label: 'USD 美元' },
+                { value: 'CNY', label: 'CNY 人民币' },
+                { value: 'CNH', label: 'CNH 离岸人民币' },
+                { value: 'RUB', label: 'RUB 俄罗斯卢布' },
+              ]} />
+            </Form.Item>
+
+            <Form.Item label={t('depositApply.amount')} name="fromAmount" rules={[{ required: true, message: t('depositApply.amountInput') }]}>
+              <Input size="large" type="number" placeholder="请输入入金金额" allowClear style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+            <Form.Item label="入金户名" name="accountName" rules={[{ required: true, message: '请输入入金户名' }]}>
+              <Input size="large" placeholder="请输入入金户名" allowClear style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+            <Form.Item label="入金账号" name="bankCard" rules={[{ required: true, message: '请输入入金账号' }]}>
+              <Input size="large" placeholder="请输入入金账号" allowClear style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+            <Form.Item label="入金开户行" name="bankBranch" rules={[{ required: true, message: '请输入入金开户行' }]}>
+              <Input size="large" placeholder="请输入入金开户行" allowClear style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+            <Form.Item label="入金开户行地址" name="bankAddress" rules={[{ required: true, message: '请输入入金开户行地址' }]}>
+              <Input size="large" placeholder="请输入入金开户行地址" allowClear style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+            <Form.Item label={<span><span style={{ color: '#f5222d' }}>*</span> {t('depositApply.proofLabel')}</span>} labelCol={{ span: 5 }} wrapperCol={{ span: 16 }}>
+              <Dragger
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                beforeUpload={beforeUpload}
+                customRequest={({ file, onSuccess, onError }) => {
+                  handleUpload(file)
+                    .then(result => result && onSuccess(result))
+                    .catch(err => onError(err));
+                }}
+                fileList={fileList}
+                onRemove={handleRemove}
+                listType="picture"
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined style={{ color: '#667eea' }} />
+                </p>
+                <p className="ant-upload-text">{t('depositApply.proofUpload')}</p>
+                <p className="ant-upload-hint" style={{ fontSize: 12, color: '#999' }}>
+                  支持 PDF 和图片（jpg/png/webp），单个文件不超过 10MB，最多 5 个
+                </p>
+              </Dragger>
+            </Form.Item>
+
+            <Form.Item label="备注" name="notes" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }}>
+              <Input.TextArea placeholder="选填，可补充其他信息" rows={3} allowClear style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+
+            <div style={{ display: 'flex', gap: 16, marginTop: 24, justifyContent: 'center' }}>
+              <Button onClick={() => navigate('/client/deposit')} size="large" style={{ borderRadius: 12, width: 180, height: 48, fontSize: 15 }}>
+                取消
+              </Button>
+              <Button type="primary" htmlType="submit" loading={submitting} size="large"
+                style={{ borderRadius: 12, width: 180, height: 48, fontSize: 15, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', boxShadow: '0 4px 12px rgba(102,126,234,0.3)' }}>
+                提交申请
+              </Button>
+            </div>
+          </Form>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default DepositApply;
