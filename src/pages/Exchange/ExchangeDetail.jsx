@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'umi';
 import { Button, Spin, Result, Steps, Modal, message } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { exchange } from '@/services/api';
-import moment from 'moment';
 import { useI18n } from '../../locales/I18nContext';
 
 const FieldBox = ({ label, value }) => (
@@ -29,7 +28,7 @@ const ExchangeDetail = () => {
       const res = await exchange.detail(exchangeId);
       if (res.code === 0) setDetail(res.data);
     } catch (e) {
-      console.error(e);
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }
@@ -48,7 +47,7 @@ const ExchangeDetail = () => {
           message.success(t('exchangeDetail.exchangeSuccess'));
           fetchDetail();
         } catch (e) {
-          message.error(e.message || t('exchangeDetail.loadFailed'));
+          // 错误已由拦截器统一处理
         } finally {
           setSubmitting(false);
         }

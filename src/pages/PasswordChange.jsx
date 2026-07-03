@@ -32,7 +32,7 @@ const PasswordChange = () => {
         navigate('/client/login');
       }, 1500);
     } catch (e) {
-      message.error(e.message || '修改失败');
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

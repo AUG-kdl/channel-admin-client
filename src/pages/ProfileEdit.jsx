@@ -53,7 +53,7 @@ const ProfileEdit = () => {
         message.success('上传成功');
       }
     } catch (e) {
-      message.error('上传失败');
+      // 错误已由拦截器统一处理
     }
   };
 
@@ -145,7 +145,7 @@ const ProfileEdit = () => {
       message.success('保存成功');
       navigate('/client/profile');
     } catch (e) {
-      message.error(e.message || '保存失败');
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

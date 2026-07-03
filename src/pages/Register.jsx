@@ -50,7 +50,7 @@ const Register = () => {
       setCountdown(60);
     } catch (error) {
       if (error.errorFields) return;
-      message.error(t('register.sendFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setSendingCode(false);
     }
@@ -71,8 +71,8 @@ const Register = () => {
       });
       message.success(t('register.registerSuccess'));
       navigate('/client/login');
-    } catch (error) {
-      message.error(error.message || t('register.registerFailed'));
+    } catch (e) {
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

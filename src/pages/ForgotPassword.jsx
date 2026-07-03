@@ -55,14 +55,7 @@ const ForgotPassword = () => {
       message.success(t('forgotPassword.resetSuccess'));
       setTimeout(() => navigate('/client/login'), 1500);
     } catch (e) {
-      const err = e?.message || '';
-      if (err.includes('邮箱') || err.includes('email') || err.includes('not registered')) {
-        message.error(t('forgotPassword.emailNotRegistered'));
-      } else if (err.includes('验证码') || err.includes('code') || err.includes('expired')) {
-        message.error(t('forgotPassword.codeError'));
-      } else {
-        message.error(err || t('app.error'));
-      }
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

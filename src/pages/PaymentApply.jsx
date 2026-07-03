@@ -29,13 +29,13 @@ const PaymentApply = () => {
         });
         message.success('付款申请已提交，请等待审核');
         setTimeout(() => navigate('/client/payment'), 1000);
-      } catch (error) {
-        message.error(error.message || '提交失败');
+      } catch (e) {
+        // 错误已由拦截器统一处理
       } finally {
         setSubmitting(false);
       }
     } catch (error) {
-      console.error('表单验证失败:', error);
+      // 表单校验失败，无需处理
     }
   };
 

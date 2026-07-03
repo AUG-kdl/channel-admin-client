@@ -84,7 +84,7 @@ const Profile = () => {
           localStorage.setItem('clientUser', JSON.stringify(res.data));
         }
       } catch (e) {
-        message.error(e.message || '获取用户信息失败');
+        // 错误已由拦截器统一处理
       }
     };
     fetchUser();

@@ -35,8 +35,8 @@ const PayeeApply = () => {
         message.success(t('app.success'));
       }
       navigate('/client/receivable');
-    } catch (err) {
-      message.error(err.message || t('app.error'));
+    } catch (e) {
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

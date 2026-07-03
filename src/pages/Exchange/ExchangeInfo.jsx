@@ -27,7 +27,7 @@ const ExchangeInfo = () => {
       const res = await exchange.detail(exchangeId);
       if (res.code === 0) setDetail(res.data);
     } catch (e) {
-      message.error(e.message || t('exchangeInfo.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

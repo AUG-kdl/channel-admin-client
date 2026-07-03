@@ -53,13 +53,13 @@ const ExchangeApply = () => {
         });
         message.success(t('exchangeApply.success'));
         setTimeout(() => navigate('/client/exchange'), 1000);
-      } catch (error) {
-        message.error(error.message || t('exchangeApply.failed'));
+      } catch (e) {
+        // 错误已由拦截器统一处理
       } finally {
         setSubmitting(false);
       }
     } catch (error) {
-      console.error(t('exchangeApply.validateFailed') + ':', error);
+      // 表单校验失败，无需处理
     }
   };
 

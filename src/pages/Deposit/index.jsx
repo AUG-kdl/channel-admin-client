@@ -9,6 +9,7 @@ import {
 import { deposit } from '@/services/api';
 import { useI18n } from '../../locales/I18nContext';
 import moment from 'moment';
+import { downloadPdf } from '@/services/api';
 
 const { RangePicker } = DatePicker;
 
@@ -67,7 +68,7 @@ const Deposit = () => {
       setData(res.data?.list || []);
       setTotal(res.data?.total || 0);
     } catch (e) {
-      message.error(t('depositList.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }
@@ -79,27 +80,8 @@ const Deposit = () => {
   const handleReset = () => { listForm.resetFields(); setPage(1); fetchData({ page: 1 }); };
 
   const handleDownload = (record) => {
-    const fields = [
-      [t('depositList.orderNo'), record.orderNo],
-      [t('depositList.fromCurrency'), record.fromCurrency],
-      [t('depositList.fromAmount'), record.fromAmount],
-      [t('depositList.accountName'), record.accountName],
-      [t('depositList.bankCard'), record.bankCard],
-      [t('depositList.bankBranch'), record.bankBranch],
-      [t('depositList.bankAddress'), record.bankAddress],
-      [t('depositList.status'), statusMap[record.status]?.text || record.status],
-      [t('depositList.createdAt'), record.createdAt ? moment(record.createdAt).format('YYYY-MM-DD HH:mm') : '-'],
-      [t('depositApply.notes') || '备注', record.notes || '-'],
-    ];
-    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const csv = '\ufeff' + fields.map(([k, v]) => `${esc(k)},${esc(v)}`).join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `入金详情_${record.orderNo || record.id}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const id = record.orderNo || record.id;
+    downloadPdf(`/client/deposit/pdf/${id}`, `入金明细_${id}.pdf`);
   };
 
   const columns = [
@@ -161,17 +143,17 @@ const Deposit = () => {
         {/* 筛选 + 操作 */}
         <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
           <Form form={listForm} layout="inline" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', rowGap: 12, columnGap: 20 }}>
-            <Form.Item label={t('depositList.depositOrderNo')} name="orderNo" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('depositList.depositOrderNo')} name="orderNo" style={{ marginBottom: 0 }}>
               <Input placeholder="请输入入金订单号" allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
-            <Form.Item label={t('depositList.filterStatus')} name="status" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('depositList.filterStatus')} name="status" style={{ marginBottom: 0 }}>
               <Select placeholder={t('depositList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'pending_review', label: t('depositList.status_pending_review') },
                 { value: 'approved', label: t('depositList.status_approved') },
                 { value: 'rejected', label: t('depositList.status_rejected') },
               ]} />
             </Form.Item>
-            <Form.Item label={t('depositList.fromCurrency')} name="fromCurrency" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('depositList.fromCurrency')} name="fromCurrency" style={{ marginBottom: 0 }}>
               <Select placeholder={t('depositList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'USD', label: 'USD' },
                 { value: 'CNY', label: 'CNY' },
@@ -179,10 +161,10 @@ const Deposit = () => {
                 { value: 'RUB', label: 'RUB' },
               ]} />
             </Form.Item>
-            <Form.Item label={t('depositList.accountName')} name="accountName" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('depositList.accountName')} name="accountName" style={{ marginBottom: 0 }}>
               <Input placeholder={t('depositList.accountName')} allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
-            <Form.Item label={t('app.dateRange')} name="dateRange" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('app.dateRange')} name="dateRange" style={{ marginBottom: 0 }}>
               <RangePicker allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
             <div style={{ display: 'flex', gap: 8 }}>

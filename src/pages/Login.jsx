@@ -35,8 +35,8 @@ const Login = () => {
       } else {
         navigate('/client/home');
       }
-    } catch (error) {
-      message.error(t('login.loginFailed'));
+    } catch (e) {
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

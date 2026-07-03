@@ -33,7 +33,7 @@ const PayeeModal = ({ visible, record, onSuccess, onCancel }) => {
       onSuccess?.();
     } catch (err) {
       if (err.errorFields) return;
-      message.error(err.message || t('payeeInfo.failed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

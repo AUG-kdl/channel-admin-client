@@ -43,7 +43,7 @@ const WithdrawalDetail = () => {
       const res = await withdrawal.detail(withdrawalId);
       if (res.code === 0) setDetail(res.data);
     } catch (e) {
-      message.error(e.message || '加载失败');
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ const WithdrawalDetail = () => {
       setConfirmVisible(false);
       fetchDetail();
     } catch (e) {
-      message.error(e.message || '操作失败');
+      // 错误已由拦截器统一处理
     } finally {
       setConfirming(false);
     }

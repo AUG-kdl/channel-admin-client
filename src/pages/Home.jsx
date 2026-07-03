@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'umi';
 import { Card, Spin, Row, Col, Input, Select, message } from 'antd';
 import { DollarOutlined, WalletOutlined, FileTextOutlined, RiseOutlined, UploadOutlined, SwapOutlined, UserSwitchOutlined } from '@ant-design/icons';
@@ -34,8 +34,8 @@ const Home = () => {
           rateMap[`${item.baseCurrency}_${item.quoteCurrency}`] = parseFloat(item.rate);
         });
         setRates(rateMap);
-      } catch (error) {
-        message.error(t('home.fetchRateFailed'));
+      } catch (e) {
+        // 错误已由拦截器统一处理
       }
     };
     fetchRates();
@@ -48,7 +48,7 @@ const Home = () => {
         (res.data || []).forEach(item => { bal[item.currency] = parseFloat(item.balance); });
         setWalletBalances(bal);
       } catch (e) {
-        message.error(t('home.fetchWalletFailed'));
+        // 错误已由拦截器统一处理
       }
     };
     fetchWallet();

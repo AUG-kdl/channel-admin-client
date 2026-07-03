@@ -5,7 +5,7 @@ export default defineConfig({
   links: [{ rel: 'icon', href: '/favicon.png', type: 'image/png' }],
   proxy: {
     '/api': {
-      target: 'http://localhost:7006',
+      target: 'http://localhost:7005',
       changeOrigin: true,
     },
   },

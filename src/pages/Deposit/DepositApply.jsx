@@ -43,7 +43,7 @@ const DepositApply = () => {
   const beforeUpload = (file) => {
     const isValidType = file.type === 'application/pdf' || file.type.startsWith('image/');
     if (!isValidType) {
-      message.error('只支持 PDF 和图片文件');
+      message.error(t('depositApply.onlySupportPdfImage'));
       return Upload.LIST_IGNORE;
     }
     const isLt10M = file.size / 1024 / 1024 < 10;
@@ -74,7 +74,7 @@ const DepositApply = () => {
       setFileList(prev => [...prev, newFile]);
       return newFile;
     } catch (e) {
-      message.error(`${file.name} ${t('depositApply.uploadFailed')}`);
+      // 错误已由拦截器统一处理
       return false;
     } finally {
       setUploading(false);
@@ -103,7 +103,7 @@ const DepositApply = () => {
       message.success(t('depositApply.success'));
       navigate('/client/deposit');
     } catch (e) {
-      message.error(e.message || '申请失败');
+      // 错误已由拦截器统一处理
     } finally {
       setSubmitting(false);
     }
@@ -116,25 +116,25 @@ const DepositApply = () => {
         {/* 顶部 */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20, gap: 8 }}>
           <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/client/deposit')} style={{ color: '#667eea', fontSize: 14 }}>
-            返回
+            {t('depositApply.back')}
           </Button>
           <span style={{ color: '#d0d0d8' }}>/</span>
-          <span style={{ color: '#667eea', fontSize: 14, fontWeight: 500 }}>入金</span>
+          <span style={{ color: '#667eea', fontSize: 14, fontWeight: 500 }}>{t('depositApply.deposit')}</span>
           <span style={{ color: '#d0d0d8' }}>/</span>
-          <span style={{ color: '#333', fontSize: 14, fontWeight: 500 }}>申请</span>
+          <span style={{ color: '#333', fontSize: 14, fontWeight: 500 }}>{t('depositApply.apply')}</span>
         </div>
 
         <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: 16, padding: '24px 28px', marginBottom: 20, color: '#fff', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: -30, right: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
           <div style={{ position: 'absolute', bottom: -40, right: 80, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
-          <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0, marginBottom: 6, position: 'relative' }}>申请入金</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0, marginBottom: 6, position: 'relative' }}>{t('depositApply.title')}</h1>
           <div style={{ fontSize: 13, opacity: 0.85, position: 'relative' }}>{t('depositApply.subtitle')}</div>
         </div>
 
         <Card style={{ borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
-          <Form form={form} layout="horizontal" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} style={{ marginTop: 8 }}>
+          <Form form={form} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} style={{ marginTop: 8 }}>
             <Form.Item label={t('depositApply.currency')} name="fromCurrency" rules={[{ required: true, message: t('depositApply.currencySelect') }]}>
-              <Select placeholder="请选择" allowClear size="large" options={[
+              <Select placeholder={t('depositApply.currencySelect')} allowClear size="large" options={[
                 { value: 'USD', label: 'USD 美元' },
                 { value: 'CNY', label: 'CNY 人民币' },
                 { value: 'CNH', label: 'CNH 离岸人民币' },
@@ -143,26 +143,26 @@ const DepositApply = () => {
             </Form.Item>
 
             <Form.Item label={t('depositApply.amount')} name="fromAmount" rules={[{ required: true, message: t('depositApply.amountInput') }]}>
-              <Input size="large" type="number" placeholder="请输入入金金额" allowClear style={{ borderRadius: 8 }} />
+              <Input size="large" type="number" placeholder={t('depositApply.amountInput')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item label="入金户名" name="accountName" rules={[{ required: true, message: '请输入入金户名' }]}>
-              <Input size="large" placeholder="请输入入金户名" allowClear style={{ borderRadius: 8 }} />
+            <Form.Item label={t('depositApply.accountName')} name="accountName" rules={[{ required: true, message: t('depositApply.accountName') }]}>
+              <Input size="large" placeholder={t('depositApply.accountName')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item label="入金账号" name="bankCard" rules={[{ required: true, message: '请输入入金账号' }]}>
-              <Input size="large" placeholder="请输入入金账号" allowClear style={{ borderRadius: 8 }} />
+            <Form.Item label={t('depositApply.bankCard')} name="bankCard" rules={[{ required: true, message: t('depositApply.bankCard') }]}>
+              <Input size="large" placeholder={t('depositApply.bankCard')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item label="入金开户行" name="bankBranch" rules={[{ required: true, message: '请输入入金开户行' }]}>
-              <Input size="large" placeholder="请输入入金开户行" allowClear style={{ borderRadius: 8 }} />
+            <Form.Item label={t('depositApply.bankBranch')} name="bankBranch" rules={[{ required: true, message: t('depositApply.bankBranch') }]}>
+              <Input size="large" placeholder={t('depositApply.bankBranch')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item label="入金开户行地址" name="bankAddress" rules={[{ required: true, message: '请输入入金开户行地址' }]}>
-              <Input size="large" placeholder="请输入入金开户行地址" allowClear style={{ borderRadius: 8 }} />
+            <Form.Item label={t('depositApply.bankAddress')} name="bankAddress" rules={[{ required: true, message: t('depositApply.bankAddress') }]}>
+              <Input size="large" placeholder={t('depositApply.bankAddress')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item label={<span><span style={{ color: '#f5222d' }}>*</span> {t('depositApply.proofLabel')}</span>} labelCol={{ span: 5 }} wrapperCol={{ span: 16 }}>
+            <Form.Item label={<span><span style={{ color: '#f5222d' }}>*</span> {t('depositApply.proofLabel')}</span>}>
               <Dragger
                 multiple
                 accept=".pdf,.jpg,.jpeg,.png,.webp"
@@ -181,23 +181,23 @@ const DepositApply = () => {
                 </p>
                 <p className="ant-upload-text">{t('depositApply.proofUpload')}</p>
                 <p className="ant-upload-hint" style={{ fontSize: 12, color: '#999' }}>
-                  支持 PDF 和图片（jpg/png/webp），单个文件不超过 10MB，最多 5 个
+                  {t('depositApply.proofUploadHint')}
                 </p>
               </Dragger>
             </Form.Item>
 
-            <Form.Item label="备注" name="notes" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }}>
-              <Input.TextArea placeholder="选填，可补充其他信息" rows={3} allowClear style={{ borderRadius: 8 }} />
+            <Form.Item label={t('depositApply.notes')} name="notes">
+              <Input.TextArea placeholder={t('depositApply.notes')} rows={3} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
 
             <div style={{ display: 'flex', gap: 16, marginTop: 24, justifyContent: 'center' }}>
               <Button onClick={() => navigate('/client/deposit')} size="large" style={{ borderRadius: 12, width: 180, height: 48, fontSize: 15 }}>
-                取消
+                {t('app.cancel')}
               </Button>
               <Button type="primary" htmlType="submit" loading={submitting} size="large"
                 style={{ borderRadius: 12, width: 180, height: 48, fontSize: 15, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', boxShadow: '0 4px 12px rgba(102,126,234,0.3)' }}>
-                提交申请
+                {t('depositApply.submitApplication')}
               </Button>
             </div>
           </Form>

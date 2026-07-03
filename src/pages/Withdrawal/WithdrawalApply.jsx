@@ -31,7 +31,7 @@ const WithdrawalApply = () => {
         // 默认填满 CNY 余额
         form.setFieldsValue({ amount: String(b['CNY'] || 0) });
       } catch (e) {
-        message.error(t('withdrawalApply.loadFailed'));
+        // 错误已由拦截器统一处理
       } finally {
         setLoading(false);
       }
@@ -62,7 +62,7 @@ const WithdrawalApply = () => {
       message.success(t('withdrawalApply.success'));
       navigate('/client/withdrawal');
     } catch (e) {
-      message.error(e.message || t('withdrawalApply.failed'));
+      // 错误已由拦截器统一处理
     } finally {
       setSubmitting(false);
     }
@@ -93,7 +93,7 @@ const WithdrawalApply = () => {
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spin size="large" /></div>
           ) : (
-            <Form form={form} layout="horizontal" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} initialValues={{ region: 'mainland', subjectType: 'personal', currency: 'CNY' }} style={{ marginTop: 8 }}>
+            <Form form={form} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} initialValues={{ region: 'mainland', subjectType: 'personal', currency: 'CNY' }} style={{ marginTop: 8 }}>
               <Form.Item label={t('withdrawalApply.region')} name="region" rules={[{ required: true }]}>
                 <Radio.Group>
                   <Radio value="mainland">{t('withdrawalApply.mainland')}</Radio>

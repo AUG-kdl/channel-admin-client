@@ -35,7 +35,7 @@ const Receivable = () => {
       setData(res.data?.list || []);
       setTotal(res.data?.total || 0);
     } catch (e) {
-      message.error(t('receivableList.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }
@@ -63,8 +63,8 @@ const Receivable = () => {
       message.success(t('receivableList.deleteSuccess'));
       setDeleteVisible(false);
       fetchData();
-    } catch (err) {
-      message.error(t('receivableList.deleteFailed'));
+    } catch (e) {
+      // 错误已由拦截器统一处理
     } finally {
       setDeleting(false);
     }
@@ -127,19 +127,19 @@ const Receivable = () => {
 
         <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
           <Form form={searchForm} layout="inline" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', rowGap: 12, columnGap: 20 }}>
-            <Form.Item label={t('receivableList.name')} name="name" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('receivableList.name')} name="name" style={{ marginBottom: 0 }}>
               <Input placeholder={t('receivableList.name')} allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
-            <Form.Item label={t('receivableList.payeeId')} name="payeeId" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('receivableList.payeeId')} name="payeeId" style={{ marginBottom: 0 }}>
               <Input placeholder={t('receivableList.payeeId')} allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
-            <Form.Item label={t('receivableList.filterType')} name="type" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('receivableList.filterType')} name="type" style={{ marginBottom: 0 }}>
               <Select placeholder={t('receivableList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'personal', label: t('receivableList.typePersonal') },
                 { value: 'enterprise', label: t('receivableList.typeEnterprise') },
               ]} />
             </Form.Item>
-            <Form.Item label={t('receivableList.filterStatus')} name="status" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('receivableList.filterStatus')} name="status" style={{ marginBottom: 0 }}>
               <Select placeholder={t('receivableList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'pending_review', label: t('receivableList.status_pending_review') },
                 { value: 'approved', label: t('receivableList.status_approved') },

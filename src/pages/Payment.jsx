@@ -63,8 +63,8 @@ const Payment = () => {
       const res = await withdrawal.list(queryParams);
       setData(res.data?.list || []);
       setTotal(res.data?.total || 0);
-    } catch (error) {
-      message.error(error.message || '加载失败');
+    } catch (e) {
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

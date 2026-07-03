@@ -48,7 +48,7 @@ const ReceivableDetail = () => {
       const found = (res.data?.list || []).find(r => r.payeeId === payeeId);
       setDetail(found || null);
     } catch (e) {
-      message.error(e.message || t('payeeInfo.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

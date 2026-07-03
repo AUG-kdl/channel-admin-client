@@ -44,7 +44,7 @@ const Exchange = () => {
       setData(res.data?.list || []);
       setTotal(res.data?.total || 0);
     } catch (e) {
-      message.error(t('exchangeList.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }
@@ -113,17 +113,17 @@ const Exchange = () => {
         {/* 筛选 + 操作 */}
         <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
           <Form form={listForm} layout="inline" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', rowGap: 12, columnGap: 20 }}>
-            <Form.Item label={t('exchangeList.exchangeOrderNo')} name="orderNo" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('exchangeList.exchangeOrderNo')} name="orderNo" style={{ marginBottom: 0 }}>
               <Input placeholder={t('exchangeList.orderNoPlaceholder')} allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
-            <Form.Item label={t('exchangeList.filterStatus')} name="status" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('exchangeList.filterStatus')} name="status" style={{ marginBottom: 0 }}>
               <Select placeholder={t('exchangeList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'pending_review', label: t('exchangeList.status_pending_review') },
                 { value: 'confirmed', label: t('exchangeList.status_confirmed') },
                 { value: 'approved', label: t('exchangeList.status_approved') },
               ]} />
             </Form.Item>
-            <Form.Item label={t('app.dateRange')} name="dateRange" labelCol={{ style: { width: 80 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('app.dateRange')} name="dateRange" style={{ marginBottom: 0 }}>
               <RangePicker allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
             <div style={{ display: 'flex', gap: 8 }}>

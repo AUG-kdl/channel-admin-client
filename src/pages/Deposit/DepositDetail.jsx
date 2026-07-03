@@ -53,7 +53,7 @@ const DepositDetail = () => {
       const res = await deposit.detail(orderNo);
       if (res.code === 0) setDetail(res.data);
     } catch (e) {
-      message.error(e.message || t('depositDetail.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }

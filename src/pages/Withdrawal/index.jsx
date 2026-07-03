@@ -5,6 +5,7 @@ import { PlusOutlined, EyeOutlined, DownloadOutlined, FileImageOutlined, FileTex
 import { withdrawal } from '@/services/api';
 import { useI18n } from '../../locales/I18nContext';
 import moment from 'moment';
+import { downloadPdf } from '@/services/api';
 
 // 解析凭证文件列表
 const parseProofFiles = (field) => {
@@ -57,7 +58,7 @@ const Withdrawal = () => {
       setData(res.data?.list || []);
       setTotal(res.data?.total || 0);
     } catch (e) {
-      message.error(t('withdrawalList.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }
@@ -69,37 +70,8 @@ const Withdrawal = () => {
   const handleReset = () => { listForm.resetFields(); setPage(1); fetchData({ page: 1 }); };
 
   const handleDownload = (record) => {
-    const headers = [
-      t('withdrawalList.withdrawalId'),
-      t('withdrawalList.type'),
-      t('withdrawalList.payeeName'),
-      t('withdrawalList.amount'),
-      t('withdrawalList.currency'),
-      t('withdrawalList.subjectType'),
-      t('withdrawalList.region'),
-      t('withdrawalList.status'),
-      t('withdrawalList.submittedAt'),
-    ];
-    const row = [
-      record.withdrawalId,
-      record.payeeType === 'personal' ? t('withdrawalList.subject_personal') : t('withdrawalList.subject_enterprise'),
-      record.payeeName,
-      record.amount,
-      record.currency,
-      record.subjectType === 'personal' ? t('withdrawalList.subject_personal') : t('withdrawalList.subject_enterprise'),
-      REGION_MAP[record.region] || record.region,
-      STATUS_MAP[record.status]?.text || record.status,
-      record.submittedAt ? moment(record.submittedAt).format('YYYY-MM-DD HH:mm') : '-',
-    ];
-    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const csv = '\ufeff' + [headers, row].map(r => r.map(esc).join(',')).join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `提现付款详情_${record.withdrawalId}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const id = record.withdrawalId || record.withdrawalId;
+    downloadPdf(`/client/withdrawal/pdf/${id}`, `提现付款明细_${id}.pdf`);
   };
 
   const columns = [
@@ -166,17 +138,17 @@ const Withdrawal = () => {
 
         <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
           <Form form={listForm} layout="inline" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', rowGap: 12, columnGap: 20 }}>
-            <Form.Item label={t('withdrawalList.withdrawalOrderNo')} name="withdrawalId" labelCol={{ style: { width: 120 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('withdrawalList.withdrawalOrderNo')} name="withdrawalId" style={{ marginBottom: 0 }}>
               <Input placeholder="请输入提现/付款订单号" allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
-            <Form.Item label={t('withdrawalList.filterStatus')} name="status" labelCol={{ style: { width: 60 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('withdrawalList.filterStatus')} name="status" style={{ marginBottom: 0 }}>
               <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'pending_review', label: t('withdrawalList.status_pending_review') },
                 { value: 'uploaded', label: t('withdrawalList.status_uploaded') },
                 { value: 'completed', label: t('withdrawalList.status_completed') },
               ]} />
             </Form.Item>
-            <Form.Item label={t('withdrawalList.filterRegion')} name="region" labelCol={{ style: { width: 60 } }} style={{ marginBottom: 0 }}>
+            <Form.Item label={t('withdrawalList.filterRegion')} name="region" style={{ marginBottom: 0 }}>
               <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'mainland', label: t('withdrawalList.region_mainland') },
                 { value: 'hk_mo', label: t('withdrawalList.region_hk_mo') },

@@ -134,7 +134,7 @@ const About = () => {
               fontSize: 16,
               fontWeight: 500,
             }}>
-              🌐 www.rostonpay..com
+              🌐 www.rostonpay.com
             </span>
           </div>
           <Row gutter={[20, 20]}>

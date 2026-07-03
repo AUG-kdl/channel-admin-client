@@ -54,7 +54,7 @@ const WithdrawalInfo = () => {
       const res = await withdrawal.detail(withdrawalId);
       if (res.code === 0) setDetail(res.data);
     } catch (e) {
-      message.error(e.message || t('withdrawalInfo.loadFailed'));
+      // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
     }
