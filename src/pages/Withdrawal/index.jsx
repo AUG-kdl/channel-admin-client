@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'umi';
-import { Form, Select, Button, message, Table, Empty, Spin, Tag, Input, Drawer, Image } from 'antd';
+import { Form, Select, Button, message, Table, Empty, Spin, Tag, Input, Drawer, Image, DatePicker } from 'antd';
+const { RangePicker } = DatePicker;
 import { PlusOutlined, EyeOutlined, DownloadOutlined, FileImageOutlined, FileTextOutlined } from '@ant-design/icons';
 import { withdrawal } from '@/services/api';
 import { useI18n } from '../../locales/I18nContext';
@@ -54,6 +55,11 @@ const Withdrawal = () => {
       if (values.withdrawalId) queryParams.withdrawalId = values.withdrawalId;
       if (values.status) queryParams.status = values.status;
       if (values.region) queryParams.region = values.region;
+      if (values.currency) queryParams.currency = values.currency;
+      if (values.dateRange && values.dateRange[0]) {
+        queryParams.startDate = values.dateRange[0].format('YYYY-MM-DD');
+        queryParams.endDate = values.dateRange[1].format('YYYY-MM-DD');
+      }
       const res = await withdrawal.list(queryParams);
       setData(res.data?.list || []);
       setTotal(res.data?.total || 0);
@@ -71,7 +77,7 @@ const Withdrawal = () => {
 
   const handleDownload = (record) => {
     const id = record.withdrawalId || record.withdrawalId;
-    downloadPdf(`/client/withdrawal/pdf/${id}`, `提现付款明细_${id}.pdf`);
+    downloadPdf(`/client/withdrawal/pdf/${id}`, `${t('withdrawalList.pdfFileName')}_${id}.pdf`);
   };
 
   const columns = [
@@ -88,10 +94,20 @@ const Withdrawal = () => {
       render: (v) => v },
     { title: t('withdrawalList.region'), dataIndex: 'region', key: 'region', width: 100,
       render: (v) => REGION_MAP[v] || (v || '') },
-    { title: t('withdrawalList.amount'), key: 'amount', width: 160,
+    { title: t('withdrawalList.currency'), dataIndex: 'currency', key: 'currency', width: 90,
+      render: (v) => v ? <span style={{ fontWeight: 600, color: '#667eea', fontSize: 13 }}>{v}</span> : '' },
+    { title: t('withdrawalList.amount'), key: 'amount', width: 140,
       render: (_, r) => (
         <span style={{ fontWeight: 600, color: '#667eea', fontSize: 15 }}>
-          {parseFloat(r.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} {r.currency}
+          {parseFloat(r.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </span>
+      ) },
+    { title: t('withdrawalList.handlingFee'), dataIndex: 'handlingFee', key: 'handlingFee', width: 90,
+      render: (v) => v != null ? <span style={{ color: '#ff4d4f', fontSize: 13 }}>{parseFloat(v).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span> : '-' },
+    { title: t('withdrawalList.arrivalAmount'), key: 'arrivalAmount', width: 140,
+      render: (_, r) => (
+        <span style={{ fontWeight: 600, color: '#52c41a', fontSize: 14 }}>
+          {r.arrivalAmount != null ? `${parseFloat(r.arrivalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })} ${r.currency || ''}` : '-'}
         </span>
       ) },
     { title: t('withdrawalList.subjectType'), dataIndex: 'subjectType', key: 'subjectType', width: 90,
@@ -102,7 +118,7 @@ const Withdrawal = () => {
         if (arr.length === 0) return <span style={{ color: '#d0d0d0' }}>—</span>;
         return (
           <Button type="link" size="small" style={{ padding: 0, color: '#667eea' }} icon={<FileImageOutlined />} onClick={() => { setCurrentProofs(arr); setProofVisible(true); }}>
-            {arr.length}张
+            {arr.length}{t('withdrawalList.proofCount')}
           </Button>
         );
       } },
@@ -113,12 +129,14 @@ const Withdrawal = () => {
         if (!m) return <span>{s}</span>;
         return <span style={{ background: m.bg, color: m.color, padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 500 }}>{m.text}</span>;
       }},
-    { title: t('withdrawalList.submittedAt'), dataIndex: 'submittedAt', key: 'submittedAt', width: 160,
+    { title: t('withdrawalList.remark'), key: 'notes', width: 120,
+      render: (_, r) => <span style={{ color: '#9ca3af', fontSize: 13 }}>{r.notes || '-'}</span> },
+    { title: t('withdrawalList.submittedAt'), dataIndex: 'createdAt', key: 'createdAt', width: 160,
       render: (v) => v ? moment(v).format('YYYY-MM-DD HH:mm') : '' },
     { title: t('withdrawalList.action'), key: 'action', width: 300, fixed: 'right',
       render: (_, r) => (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => navigate(`/client/withdrawal/${r.withdrawalId}`)}>{t('withdrawalList.detail').replace('详情', '提现/付款详情')}</Button>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => navigate(`/client/withdrawal/${r.withdrawalId}`)}>{t('withdrawalList.detail')}</Button>
           <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => navigate(`/client/withdrawal/withdrawalInfo/${r.withdrawalId}`)}>{t('withdrawalList.view')}</Button>
           {r.status === 'completed' && (
             <Button type="link" size="small" icon={<DownloadOutlined />} onClick={() => handleDownload(r)}>{t('withdrawalList.download')}</Button>
@@ -139,7 +157,7 @@ const Withdrawal = () => {
         <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
           <Form form={listForm} layout="inline" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', rowGap: 12, columnGap: 20 }}>
             <Form.Item label={t('withdrawalList.withdrawalOrderNo')} name="withdrawalId" style={{ marginBottom: 0 }}>
-              <Input placeholder="请输入提现/付款订单号" allowClear style={{ width: 280, height: 36 }} />
+              <Input placeholder={t('withdrawalList.searchPlaceholder')} allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
             <Form.Item label={t('withdrawalList.filterStatus')} name="status" style={{ marginBottom: 0 }}>
               <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
@@ -149,10 +167,19 @@ const Withdrawal = () => {
               ]} />
             </Form.Item>
             <Form.Item label={t('withdrawalList.filterRegion')} name="region" style={{ marginBottom: 0 }}>
-              <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
+              <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 160, height: 36 }} options={[
                 { value: 'mainland', label: t('withdrawalList.region_mainland') },
                 { value: 'hk_mo', label: t('withdrawalList.region_hk_mo') },
               ]} />
+            </Form.Item>
+            <Form.Item label={t('withdrawalList.currency')} name="currency" style={{ marginBottom: 0 }}>
+              <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 160, height: 36 }} options={[
+                { value: 'CNY', label: 'CNY' },
+                { value: 'USD', label: 'USD' },
+              ]} />
+            </Form.Item>
+            <Form.Item label={t('withdrawalList.dateRange')} name="dateRange" style={{ marginBottom: 0 }}>
+              <RangePicker style={{ width: 240, height: 36 }} />
             </Form.Item>
             <div style={{ display: 'flex', gap: 8 }}>
               <Button type="primary" onClick={handleSearch} style={{ height: 36, borderRadius: 8, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', boxShadow: '0 4px 12px rgba(102,126,234,0.3)' }}>{t('app.search')}</Button>

@@ -1,42 +1,50 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'umi';
 import { Button, Spin, Result, Tag, Card, message } from 'antd';
-import { ArrowLeftOutlined, FilePdfOutlined } from '@ant-design/icons';
-import { withdrawal } from '@/services/api';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { withdrawal, payee } from '@/services/api';
 import moment from 'moment';
 import { useI18n } from '@/locales/I18nContext';
 
 const REGION_MAP = { mainland: 'withdrawalInfo.mainland', hk_mo: 'withdrawalInfo.hkMo' };
 
-const FileThumb = ({ url, name }) => {
+const FileCard = ({ url, name }) => {
   if (!url) return null;
   const ext = url.split('.').pop()?.toLowerCase().split('?')[0];
-  const isPdf = ext === 'pdf';
   const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext);
-  if (isImage) {
-    return (
-      <img
-        src={url}
-        style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 8, border: '1px solid #e8e8f0', cursor: 'pointer' }}
-        onClick={() => window.open(url, '_blank')}
-      />
-    );
-  }
-  if (isPdf) {
-    return (
-      <a href={url} target="_blank" rel="noreferrer">
-        <div style={{
-          width: 120, height: 90, background: '#fff1f0', border: '1px solid #ffccc7',
-          borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', color: '#ff4d4f', cursor: 'pointer',
-        }}>
-          <FilePdfOutlined style={{ fontSize: 28 }} />
-          <span style={{ fontSize: 11, marginTop: 4 }}>PDF</span>
+  const fileName = name || url.split('/').pop() || '文件';
+  const handleDownload = (e) => {
+    e.preventDefault();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 110 }}>
+      {isImage ? (
+        <img
+          src={url}
+          style={{ width: 100, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #e8e8f0', cursor: 'pointer' }}
+          onClick={() => window.open(url, '_blank')}
+        />
+      ) : (
+        <div
+          style={{ width: 100, height: 80, background: '#fff1f0', border: '1px solid #ffccc7', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          onClick={() => window.open(url, '_blank')}
+        >
+          <span style={{ fontSize: 12, color: '#ff4d4f', fontWeight: 600 }}>PDF</span>
         </div>
-      </a>
-    );
-  }
-  return <a href={url} target="_blank" rel="noreferrer" style={{ color: '#667eea', fontSize: 13 }}>{name || url}</a>;
+      )}
+      <span
+        style={{ fontSize: 11, color: '#667eea', marginTop: 4, cursor: 'pointer', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        onClick={handleDownload}
+        title={fileName}
+      >
+        {fileName}
+      </span>
+    </div>
+  );
 };
 
 const WithdrawalInfo = () => {
@@ -45,18 +53,32 @@ const WithdrawalInfo = () => {
   const { t } = useI18n();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [payeeDetail, setPayeeDetail] = useState(null);
 
   useEffect(() => { fetchDetail(); }, [withdrawalId]);
 
   const fetchDetail = async () => {
     setLoading(true);
+    setPayeeDetail(null);
     try {
       const res = await withdrawal.detail(withdrawalId);
-      if (res.code === 0) setDetail(res.data);
+      if (res.code === 0) {
+        setDetail(res.data);
+        if (res.data.payeeId) fetchPayee(res.data.payeeId);
+      }
     } catch (e) {
       // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPayee = async (payeeId) => {
+    try {
+      const res = await payee.detail(payeeId);
+      if (res.code === 0) setPayeeDetail(res.data);
+    } catch (e) {
+      // ignore
     }
   };
 
@@ -129,55 +151,47 @@ const WithdrawalInfo = () => {
             <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '20px 24px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px' }}>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.region')}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{t(REGION_MAP[detail.region]) || detail.region}</div>
-                </div>
-                <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.subjectType')}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.subjectType === 'personal' ? t('withdrawalInfo.personal') : detail.subjectType === 'enterprise' ? t('withdrawalInfo.enterprise') : ''}</div>
-                </div>
-                <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeName')}</div>
                   <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeName}</div>
                 </div>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeId')}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#667eea', fontFamily: 'monospace' }}>{detail.payeeId}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.region')}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{t(REGION_MAP[detail.region]) || detail.region}</div>
                 </div>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.currency')}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.currency}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#667eea' }}>{detail.currency}</div>
                 </div>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.amount')}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
-                    {parseFloat(detail.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} {detail.currency}
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#667eea' }}>
+                    {parseFloat(detail.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </div>
                 </div>
                 {detail.handlingFee != null && (
                   <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                     <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.handlingFee')}</div>
                     <div style={{ fontSize: 15, fontWeight: 600, color: '#ff4d4f' }}>
-                      {parseFloat(detail.handlingFee).toLocaleString(undefined, { minimumFractionDigits: 2 })} {detail.currency}
+                      {parseFloat(detail.handlingFee).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                )}
+                {detail.arrivalAmount != null && (
+                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.arrivalAmount')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#52c41a' }}>
+                      {parseFloat(detail.arrivalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                 )}
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.applyTime')}</div>
-                  <div style={{ fontSize: 15, fontWeight: 500, color: '#333' }}>{detail.submittedAt ? moment(detail.submittedAt).format('YYYY-MM-DD HH:mm:ss') : '-'}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.subjectType')}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.subjectType === 'personal' ? t('withdrawalInfo.personal') : detail.subjectType === 'enterprise' ? t('withdrawalInfo.enterprise') : ''}</div>
                 </div>
-                {detail.processedAt && (
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.processedTime')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: '#333' }}>{moment(detail.processedAt).format('YYYY-MM-DD HH:mm:ss')}</div>
-                  </div>
-                )}
-                {detail.completedAt && (
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.completeTime')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: '#333' }}>{moment(detail.completedAt).format('YYYY-MM-DD HH:mm:ss')}</div>
-                  </div>
-                )}
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.applyTime')}</div>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: '#333' }}>{detail.createdAt ? moment(detail.createdAt).format('YYYY-MM-DD HH:mm:ss') : '-'}</div>
+                </div>
               </div>
               {detail.notes && (
                 <div style={{ padding: '10px 0' }}>
@@ -188,18 +202,82 @@ const WithdrawalInfo = () => {
             </div>
           </div>
 
+          {/* 收款方信息 */}
+          {payeeDetail && (
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#667eea', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 3, height: 14, background: '#667eea', borderRadius: 2 }} />
+                {t('withdrawalInfo.payeeInfo')}
+              </div>
+              <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '20px 24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px' }}>
+                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeId')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#667eea' }}>{payeeDetail.payeeId}</div>
+                  </div>
+                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeType')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
+                      {payeeDetail.type === 'personal' ? t('withdrawalInfo.personal') : payeeDetail.type === 'enterprise' ? t('withdrawalInfo.enterprise') : '-'}
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeName')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
+                      {payeeDetail.type === 'personal' ? payeeDetail.name : payeeDetail.companyName || '-'}
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeePhone')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.phone || '-'}</div>
+                  </div>
+                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBankAccount')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
+                      {payeeDetail.type === 'personal' ? (payeeDetail.bankCard || '-') : (payeeDetail.bankAccount || '-')}
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBank')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
+                      {payeeDetail.type === 'personal' ? payeeDetail.bankBranch : payeeDetail.bankName || '-'}
+                    </div>
+                  </div>
+                  {payeeDetail.type === 'personal' && payeeDetail.idCard && (
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.idCard')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.idCard}</div>
+                    </div>
+                  )}
+                  {payeeDetail.type === 'enterprise' && payeeDetail.swiftCode && (
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.swiftCode')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.swiftCode}</div>
+                    </div>
+                  )}
+                  {payeeDetail.type === 'enterprise' && payeeDetail.bankCode && (
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.bankCode')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.bankCode}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 水单凭证 */}
           {files.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#667eea', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 3, height: 14, background: '#667eea', borderRadius: 2 }} />
-                {t('withdrawalInfo.proofFiles')}（{files.length}张）
+                {t('withdrawalInfo.proofFiles')}（{files.length}{t('withdrawalInfo.proofCount')}）
               </div>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 {files.map((f, i) => {
                   const url = typeof f === 'string' ? f : f.url;
                   const name = typeof f === 'object' ? f.name : null;
-                  return <FileThumb key={i} url={url} name={name} />;
+                  return <FileCard key={i} url={url} name={name} />;
                 })}
               </div>
             </div>

@@ -97,6 +97,12 @@ const Deposit = () => {
     { title: t('depositList.fromCurrency'), dataIndex: 'fromCurrency', key: 'fromCurrency', width: 100 },
     { title: t('depositList.fromAmount'), dataIndex: 'fromAmount', key: 'fromAmount', width: 130,
       render: (v, r) => <span style={{ fontWeight: 600 }}>{parseFloat(v || 0).toLocaleString()} {r.fromCurrency}</span> },
+    { title: t('depositList.bankCard'), dataIndex: 'bankCard', key: 'bankCard', width: 160,
+      render: (v) => <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{v || '-'}</span> },
+    { title: t('depositList.bankBranch'), dataIndex: 'bankBranch', key: 'bankBranch', width: 140,
+      render: (v) => v || '-' },
+    { title: t('depositList.bankAddress'), dataIndex: 'bankAddress', key: 'bankAddress', width: 160,
+      render: (v) => v || '-' },
     { title: t('depositList.accountName'), dataIndex: 'accountName', key: 'accountName', width: 140,
       render: (v) => v || '-' },
     { title: t('depositList.images'), key: 'images', width: 100,
@@ -114,9 +120,13 @@ const Deposit = () => {
         const m = statusMap[s] || statusMap.pending_review;
         return <span style={{ background: m.bg, color: m.color, padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 500 }}>{m.text}</span>;
       }},
+    { title: t('depositList.notes') || '客户备注', dataIndex: 'notes', key: 'notes', width: 130,
+      render: (v) => <span style={{ fontSize: 12, color: v ? '#333' : '#bbb' }}>{v || '-'}</span> },
+    { title: t('depositList.reason') || '审核备注', dataIndex: 'reason', key: 'reason', width: 130,
+      render: (v) => <span style={{ fontSize: 12, color: v ? '#333' : '#bbb' }}>{v || '-'}</span> },
     { title: t('depositList.createdAt'), dataIndex: 'createdAt', key: 'createdAt', width: 160,
       render: (v) => v ? moment(v).format('YYYY-MM-DD HH:mm') : '-' },
-    { title: t('depositList.action'), key: 'action', width: 110, fixed: 'right',
+    { title: t('depositList.action'), key: 'action', width: 200, fixed: 'right',
       render: (_, r) => (
         <>
           {r.status === 'rejected' && (
@@ -164,7 +174,7 @@ const Deposit = () => {
             <Form.Item label={t('depositList.accountName')} name="accountName" style={{ marginBottom: 0 }}>
               <Input placeholder={t('depositList.accountName')} allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
-            <Form.Item label={t('app.dateRange')} name="dateRange" style={{ marginBottom: 0 }}>
+            <Form.Item label={t('depositList.createdAt')} name="dateRange" style={{ marginBottom: 0 }}>
               <RangePicker allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -187,9 +197,9 @@ const Deposit = () => {
             <Table
               dataSource={data}
               columns={columns}
-              rowKey="id"
+              rowKey="orderNo"
               loading={loading}
-              scroll={{ x: 1600 }}
+              scroll={{ x: 2400 }}
               pagination={{
                 current: page,
                 pageSize,

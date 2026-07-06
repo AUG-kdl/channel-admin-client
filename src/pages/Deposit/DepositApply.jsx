@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'umi';
-import { Form, Select, Input, Button, message, Card, Upload } from 'antd';
+import { Form, Select, Input, Button, message, Card, Upload, Alert } from 'antd';
 import { ArrowLeftOutlined, InboxOutlined } from '@ant-design/icons';
 import { deposit, upload } from '@/services/api';
 import { useI18n } from '../../locales/I18nContext';
@@ -15,6 +15,9 @@ const DepositApply = () => {
   const [submitting, setSubmitting] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  // 重新申请：被拒记录（从列表页带过来）
+  const reapplyRecord = location.state?.fromRejected;
 
   // 重新申请：回显被拒记录的数据
   useEffect(() => {
@@ -133,6 +136,20 @@ const DepositApply = () => {
 
         <Card style={{ borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
           <Form form={form} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} style={{ marginTop: 8 }}>
+            {/* 重新申请：展示审核备注 */}
+            {reapplyRecord?.reason && (
+              <Alert
+                type="warning"
+                showIcon
+                message={
+                  <span>
+                    <span style={{ fontWeight: 600 }}>审核备注：</span>
+                    <span>{reapplyRecord.reason}</span>
+                  </span>
+                }
+                style={{ marginBottom: 16, borderRadius: 10, background: '#fffbe6', border: '1px solid #ffe58f', color: '#ad6800' }}
+              />
+            )}
             <Form.Item label={t('depositApply.currency')} name="fromCurrency" rules={[{ required: true, message: t('depositApply.currencySelect') }]}>
               <Select placeholder={t('depositApply.currencySelect')} allowClear size="large" options={[
                 { value: 'USD', label: 'USD 美元' },
@@ -142,8 +159,11 @@ const DepositApply = () => {
               ]} />
             </Form.Item>
 
-            <Form.Item label={t('depositApply.amount')} name="fromAmount" rules={[{ required: true, message: t('depositApply.amountInput') }]}>
-              <Input size="large" type="number" placeholder={t('depositApply.amountInput')} allowClear style={{ borderRadius: 8 }} />
+            <Form.Item label={t('depositApply.amount')} name="fromAmount" rules={[
+              { required: true, message: t('depositApply.amountInput') },
+              { pattern: /^[1-9]\d*(\.\d+)?$/, message: '请输入正数金额' },
+            ]}>
+              <Input size="large" type="text" inputMode="decimal" placeholder={t('depositApply.amountInput')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
             <Form.Item label={t('depositApply.accountName')} name="accountName" rules={[{ required: true, message: t('depositApply.accountName') }]}>
@@ -160,6 +180,10 @@ const DepositApply = () => {
 
             <Form.Item label={t('depositApply.bankAddress')} name="bankAddress" rules={[{ required: true, message: t('depositApply.bankAddress') }]}>
               <Input size="large" placeholder={t('depositApply.bankAddress')} allowClear style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+            <Form.Item label={t('depositApply.notes')} name="notes">
+              <Input.TextArea size="large" rows={2} placeholder={t('depositApply.notes')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
             <Form.Item label={<span><span style={{ color: '#f5222d' }}>*</span> {t('depositApply.proofLabel')}</span>}>
@@ -185,11 +209,6 @@ const DepositApply = () => {
                 </p>
               </Dragger>
             </Form.Item>
-
-            <Form.Item label={t('depositApply.notes')} name="notes">
-              <Input.TextArea placeholder={t('depositApply.notes')} rows={3} allowClear style={{ borderRadius: 8 }} />
-            </Form.Item>
-
 
             <div style={{ display: 'flex', gap: 16, marginTop: 24, justifyContent: 'center' }}>
               <Button onClick={() => navigate('/client/deposit')} size="large" style={{ borderRadius: 12, width: 180, height: 48, fontSize: 15 }}>

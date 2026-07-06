@@ -28,7 +28,7 @@ const ExchangeDetail = () => {
       const res = await exchange.detail(exchangeId);
       if (res.code === 0) setDetail(res.data);
     } catch (e) {
-      // 错误已由拦截器统一处理
+      // Error handled by interceptor
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ const ExchangeDetail = () => {
   const handleConfirm = () => {
     Modal.confirm({
       title: t('exchangeDetail.confirmTitle'),
-      content: <div style={{ color: '#f5222d' }}><b>此操作不可逆！</b><br />{t('exchangeDetail.confirmContent')}</div>,
+      content: <div style={{ color: '#f5222d' }}>{t('exchangeDetail.confirmContent')}</div>,
       okText: t('exchangeDetail.okConfirm'),
       cancelText: t('app.cancel'),
       onOk: async () => {
@@ -47,7 +47,7 @@ const ExchangeDetail = () => {
           message.success(t('exchangeDetail.exchangeSuccess'));
           fetchDetail();
         } catch (e) {
-          // 错误已由拦截器统一处理
+          // Error handled by interceptor
         } finally {
           setSubmitting(false);
         }
@@ -153,7 +153,7 @@ const ExchangeDetail = () => {
             <Result
               status="success"
               title={t('exchangeDetail.exchangeComplete')}
-              subTitle={`已成功将 ${detail.fromAmount} ${detail.fromCurrency} 换为 ${detail.toAmount} ${detail.toCurrency}`}
+              subTitle={`${t('exchangeDetail.completeSubTitle')}：${detail.fromAmount} ${detail.fromCurrency} → ${detail.toAmount} ${detail.toCurrency}`}
               extra={<Button type="primary" onClick={() => navigate('/client/exchange')} style={{ borderRadius: 12 }}>{t('exchangeDetail.backToList')}</Button>}
             />
           </Card>

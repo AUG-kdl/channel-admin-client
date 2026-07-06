@@ -13,8 +13,8 @@ const STATUS_MAP = (t) => ({
 });
 
 const Section = ({ title, children }) => (
-  <div style={{ marginBottom: 36 }}>
-    <div style={{ fontSize: 12, color: '#667eea', fontWeight: 600, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1 }}>{title}</div>
+  <div style={{ marginBottom: 40 }}>
+    <div style={{ fontSize: 12, color: '#667eea', fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{title}</div>
     {children}
   </div>
 );
@@ -26,7 +26,7 @@ const FieldGrid = ({ children }) => (
 );
 
 const FieldItem = ({ label, children, span }) => (
-  <div style={{ gridColumn: span ? `span ${span}` : undefined, padding: '10px 0', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'baseline', gap: 8 }}>
+  <div style={{ gridColumn: span ? `span ${span}` : undefined, padding: '14px 0', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'baseline', gap: 8 }}>
     <span style={{ color: '#9ca3af', fontSize: 13, flexShrink: 0 }}>{label}</span>
     <span style={{ fontSize: 14, fontWeight: 500, color: '#333', wordBreak: 'break-all', flex: 1 }}>{children}</span>
   </div>
@@ -68,29 +68,15 @@ const DepositDetail = () => {
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
         {/* 顶部导航 */}
-        <div style={{ marginBottom: 20 }}>
-          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/client/deposit')} style={{ color: '#667eea', fontSize: 14, padding: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16, gap: 8 }}>
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/client/deposit')} style={{ color: '#667eea', fontSize: 14 }}>
             {t('depositDetail.back')}
           </Button>
+          <span style={{ color: '#d0d0d8' }}>/</span>
+          <span style={{ color: '#667eea', fontSize: 14, fontWeight: 500 }}>{t('depositList.title')}</span>
+          <span style={{ color: '#d0d0d8' }}>/</span>
+          <span style={{ color: '#333', fontSize: 14, fontWeight: 500 }}>{t('depositDetail.title')}</span>
         </div>
-
-        {/* 状态标签 */}
-        {status && (
-          <div style={{ marginBottom: 16 }}>
-            <span style={{
-              display: 'inline-block',
-              padding: '4px 16px',
-              borderRadius: 20,
-              fontSize: 13,
-              fontWeight: 500,
-              color: statusInfo.color,
-              background: statusInfo.bg,
-              border: `1px solid ${statusInfo.color}30`,
-            }}>
-              {statusInfo.text}
-            </span>
-          </div>
-        )}
 
         <Spin spinning={loading}>
           {detail ? (
@@ -98,24 +84,33 @@ const DepositDetail = () => {
               <Card>
                 <Section title={t('depositDetail.basicInfo')}>
                   <FieldGrid>
-                    <FieldItem label={t('depositDetail.orderNo')}>{detail.orderNo || dash}</FieldItem>
-                    <FieldItem label={t('depositDetail.amount')}>{detail.amount || dash}</FieldItem>
-                    <FieldItem label={t('depositDetail.currency')}>{detail.currency || dash}</FieldItem>
-                    <FieldItem label={t('depositDetail.status2')}>{statusInfo.text || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.orderNo')}>入金{detail.orderNo || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.amount')}>{detail.fromAmount || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.currency')}>入金币种：{detail.fromCurrency || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.bankCard')}>{detail.bankCard || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.bankBranch')}>{detail.bankBranch || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.bankAddress')}>{detail.bankAddress || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.status2')}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 12px',
+                        borderRadius: 12,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: statusInfo.color,
+                        background: statusInfo.bg,
+                      }}>
+                        {statusInfo.text || dash}
+                      </span>
+                    </FieldItem>
                     <FieldItem label={t('depositDetail.createdAt')}>
                       {detail.createdAt ? moment(detail.createdAt).format('YYYY-MM-DD HH:mm') : dash}
                     </FieldItem>
                     <FieldItem label={t('depositDetail.updatedAt')}>
                       {detail.updatedAt ? moment(detail.updatedAt).format('YYYY-MM-DD HH:mm') : dash}
                     </FieldItem>
-                  </FieldGrid>
-                </Section>
-
-                <Section title={t('depositDetail.payerInfo')}>
-                  <FieldGrid>
-                    <FieldItem label={t('depositDetail.payerName')}>{detail.payerName || dash}</FieldItem>
-                    <FieldItem label={t('depositDetail.payerBank')}>{detail.payerBank || dash}</FieldItem>
-                    <FieldItem label={t('depositDetail.payerAccount')}>{detail.payerAccount || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.notes') || '备注'}>{detail.notes || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.reason') || '审核备注'}>{detail.reason || dash}</FieldItem>
                   </FieldGrid>
                 </Section>
 
@@ -142,19 +137,15 @@ const DepositDetail = () => {
                   })()}
                 </Section>
 
-                {/* 备注 / 拒绝原因 */}
-                {status === 'rejected' && detail.notes && (
-                  <Section title={t('depositDetail.rejectReason')}>
-                    <div style={{ background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 8, padding: '12px 16px', color: '#cf1322', fontSize: 14 }}>
-                      {detail.notes}
-                    </div>
-                  </Section>
-                )}
-                {status !== 'rejected' && detail.notes && (
-                  <Section title={t('depositDetail.notes')}>
-                    <div style={{ color: '#333', fontSize: 14 }}>{detail.notes}</div>
-                  </Section>
-                )}
+                <div style={{ textAlign: 'center', marginTop: 8 }}>
+                  <Button
+                    type="primary"
+                    onClick={() => navigate('/client/deposit')}
+                    style={{ width: 160, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', boxShadow: '0 4px 12px rgba(102,126,234,0.3)' }}
+                  >
+                    {t('depositDetail.back')}
+                  </Button>
+                </div>
               </Card>
             </div>
           ) : (

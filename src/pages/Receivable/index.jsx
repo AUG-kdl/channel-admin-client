@@ -92,6 +92,12 @@ const Receivable = () => {
       render: (_, r) => r.type === 'personal' ? (r.bankBranch || '-') : (r.bankName || '-') },
     { title: t('receivableList.bankAddress'), key: 'bankAddress', width: 280,
       render: (_, r) => r.type === 'enterprise' ? (r.bankAddress || '-') : null },
+    { title: t('receivableList.idCard'), key: 'idCard', width: 180,
+      render: (_, r) => r.type === 'personal' ? (r.idCard || '-') : null },
+    { title: t('receivableList.swiftCode'), key: 'swiftCode', width: 150,
+      render: (_, r) => r.type === 'enterprise' ? (r.swiftCode || '-') : null },
+    { title: t('receivableList.bankCode'), key: 'bankCode', width: 150,
+      render: (_, r) => r.type === 'enterprise' ? (r.bankCode || '-') : null },
     { title: t('receivableList.status'), dataIndex: 'status', key: 'status', width: 110,
       render: (s) => {
         const m = STATUS_MAP[s] || STATUS_MAP.pending_review;
@@ -101,6 +107,8 @@ const Receivable = () => {
       render: (v) => v ? moment(v).format('YYYY-MM-DD HH:mm') : '-' },
     { title: t('receivableList.notes'), key: 'notes', width: 120,
       render: (_, r) => <span style={{ color: '#9ca3af', fontSize: 13 }}>{r.notes || '-'}</span> },
+    { title: t('receivableList.reason'), key: 'reason', width: 160,
+      render: (_, r) => <span style={{ color: '#f5222d', fontSize: 12 }}>{r.rejectReason || '-'}</span> },
     { title: t('receivableList.action'), key: 'action', width: 280, fixed: 'right',
       render: (_, r) => (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -109,7 +117,7 @@ const Receivable = () => {
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => navigate(`/client/receivable/apply`, { state: { fromRejected: r } })}>{t('receivableList.edit')}</Button>
           )}
           {r.status === 'rejected' && (
-            <Button type="link" size="small" danger icon={<EditOutlined />} onClick={() => navigate(`/client/receivable/apply`, { state: { fromRejected: r } })}>{t('receivableList.reapply') || '重新填写'}</Button>
+            <Button type="link" size="small" danger icon={<EditOutlined />} onClick={() => navigate(`/client/receivable/apply`, { state: { fromRejected: r } })}>{t('receivableList.reapply')}</Button>
           )}
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeleteClick(r)}>{t('receivableList.delete')}</Button>
         </div>

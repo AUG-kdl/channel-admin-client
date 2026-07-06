@@ -75,7 +75,7 @@ const ReceivableDetail = () => {
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin size="large" /></div>
         ) : !detail ? (
-          <Result status="error" title={t('payeeInfo.notFound')} subTitle={t('payeeInfo.notFoundDesc') || '该收款人记录不存在或已被删除'} />
+          <Result status="error" title={t('payeeInfo.notFound')} subTitle={t('payeeInfo.notFoundDesc')} />
         ) : (
           <>
             {/* 概览卡片 */}
@@ -121,6 +121,7 @@ const ReceivableDetail = () => {
                   </>
                 )}
                 {detail.notes && <InfoRow label={t('payeeInfo.notes')} value={detail.notes} />}
+                {detail.rejectReason && <InfoRow label={t('payeeInfo.reason')} value={detail.rejectReason} />}
               </InfoGrid>
             </Card>
 

@@ -28,33 +28,27 @@ export default function ClientLayout() {
 
   const [logoutVisible, setLogoutVisible] = useState(false);
   const [authStatus, setAuthStatus] = useState(user.authStatus || 'pending');
+  const [authReason, setAuthReason] = useState(user.authReason || '');
 
-  // 每次进入 layout 时拉取最新 authStatus
+  // 每次进入 layout 时拉取最新 authStatus + authReason
   useEffect(() => {
     if (!token) return;
     clientAuth.me().then(res => {
       const fresh = res.data?.authStatus || 'pending';
+      const reason = res.data?.authReason || '';
       setAuthStatus(fresh);
-      // 同步更新 localStorage
-      const updated = { ...user, authStatus: fresh };
+      setAuthReason(reason);
+      const updated = { ...user, authStatus: fresh, authReason: reason };
       localStorage.setItem('clientUser', JSON.stringify(updated));
     }).catch(() => {});
   }, []);
 
-  const isAuthBlocked = authStatus !== 'approved';
+  const isAuthBlocked = authStatus !== 'approved' && !['/client/profile', '/client/profile/edit'].includes(location.pathname);
 
   if (!token) {
     navigate('/client/login');
     return null;
   }
-
-  const handleAuthLogout = () => {
-    localStorage.removeItem('clientToken');
-    localStorage.removeItem('clientUser');
-    navigate('/client/login');
-  };
-
-  const isPending = authStatus === 'pending';
 
   const navItems = [
     { path: '/client/home', label: t('nav.home'), icon: <HomeOutlined /> },
@@ -96,41 +90,66 @@ export default function ClientLayout() {
     <>
       <style>{`body, html { margin: 0 !important; padding: 0 !important; } #root { overflow-x: hidden; }`}</style>
 
-      {/* 认证阻断弹框 */}
+      {/* 认证阻断弹框 — 三态引导 */}
       <Modal
         open={isAuthBlocked}
         footer={null}
         closable={false}
         maskClosable={false}
         centered
-        width={400}
+        width={420}
         styles={{ body: { padding: 0, overflow: 'hidden' } }}
       >
         <div style={{ textAlign: 'center', padding: '40px 32px 32px' }}>
           {/* 图标 */}
           <div style={{
             width: 72, height: 72, borderRadius: '50%',
-            background: isPending ? 'linear-gradient(135deg, #fff7e6 0%, #ffe7b0 100%)' : 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)',
-            border: `2px solid ${isPending ? '#ffa940' : '#ff4d4f'}`,
+            background: authStatus === 'pending'
+              ? 'linear-gradient(135deg, #fff7e6 0%, #ffe7b0 100%)'
+              : authStatus === 'rejected'
+                ? 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)'
+                : 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+            border: `2px solid ${authStatus === 'pending' ? '#ffa940' : authStatus === 'rejected' ? '#ff4d4f' : '#818cf8'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 24px',
           }}>
-            {isPending
+            {authStatus === 'pending'
               ? <ClockCircleOutlined style={{ fontSize: 32, color: '#fa8c16' }} />
-              : <CloseCircleOutlined style={{ fontSize: 32, color: '#f5222d' }} />
+              : authStatus === 'rejected'
+                ? <CloseCircleOutlined style={{ fontSize: 32, color: '#f5222d' }} />
+                : <UserOutlined style={{ fontSize: 32, color: '#6366f1' }} />
             }
           </div>
+
           {/* 标题 */}
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#1a1a2e', marginBottom: 12 }}>
-            {isPending ? t('nav.authPendingTitle') : t('nav.authRejectedTitle')}
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#1a1a2e', marginBottom: 10 }}>
+            {authStatus === 'pending' ? t('nav.authPendingTitle')
+              : authStatus === 'rejected' ? t('nav.authRejectedTitle')
+              : t('nav.authUnsubmittedTitle')}
           </div>
+
           {/* 描述 */}
-          <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 32, lineHeight: 1.7 }}>
-            {isPending ? t('nav.authPendingDesc') : t('nav.authRejectedDesc')}
+          <div style={{ fontSize: 14, color: '#6b7280', marginBottom: authStatus === 'rejected' ? 8 : 28, lineHeight: 1.7 }}>
+            {authStatus === 'pending' ? t('nav.authPendingDesc')
+              : authStatus === 'rejected' ? t('nav.authRejectedDesc')
+              : t('nav.authUnsubmittedDesc')}
           </div>
-          {/* 按钮 */}
+
+          {/* 拒绝原因 */}
+          {authStatus === 'rejected' && authReason && (
+            <div style={{
+              background: '#fff1f0', border: '1px solid #ffccc7',
+              borderRadius: 8, padding: '10px 14px', marginBottom: 24,
+              fontSize: 13, color: '#cf1322', textAlign: 'left', lineHeight: 1.6,
+            }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>{t('nav.authRejectReason') || '拒绝原因'}：</div>
+              <div>{authReason}</div>
+            </div>
+          )}
+
+          {/* 按钮 — 始终显示"去认证" */}
           <button
-            onClick={handleAuthLogout}
+            onClick={() => navigate('/client/profile')}
             style={{
               width: '100%', height: 48, borderRadius: 12,
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -138,7 +157,7 @@ export default function ClientLayout() {
               cursor: 'pointer', boxShadow: '0 4px 12px rgba(102,126,234,0.3)',
             }}
           >
-            {t('nav.authPendingBtn')}
+            {t('nav.authUnsubmittedBtn') || '去认证'}
           </button>
         </div>
       </Modal>

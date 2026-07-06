@@ -27,7 +27,7 @@ const ExchangeInfo = () => {
       const res = await exchange.detail(exchangeId);
       if (res.code === 0) setDetail(res.data);
     } catch (e) {
-      // 错误已由拦截器统一处理
+      // Error handled by interceptor
     } finally {
       setLoading(false);
     }
@@ -97,6 +97,16 @@ const ExchangeInfo = () => {
             <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '20px 24px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px' }}>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.exchangeId')}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#667eea' }}>{detail.exchangeId}</div>
+                </div>
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.status')}</div>
+                  <Tag color={statusColor} style={{ fontSize: 12, padding: '2px 10px', borderRadius: 6 }}>
+                    {t(`exchangeInfo.${statusKey}`)}
+                  </Tag>
+                </div>
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.fromCurrency')}</div>
                   <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.fromCurrency}</div>
                 </div>
@@ -122,19 +132,17 @@ const ExchangeInfo = () => {
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.applyTime')}</div>
                   <div style={{ fontSize: 15, fontWeight: 500, color: '#333' }}>{detail.createdAt ? moment(detail.createdAt).format('YYYY-MM-DD HH:mm:ss') : '-'}</div>
                 </div>
-                {detail.customerConfirmAt && (
+                {detail.updatedAt && (
                   <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.confirmTime')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: '#333' }}>{moment(detail.customerConfirmAt).format('YYYY-MM-DD HH:mm:ss')}</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.updateTime')}</div>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: '#333' }}>{moment(detail.updatedAt).format('YYYY-MM-DD HH:mm:ss')}</div>
                   </div>
                 )}
-              </div>
-              {detail.notes && (
-                <div style={{ padding: '10px 0' }}>
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.remark')}</div>
-                  <div style={{ fontSize: 14, color: '#333' }}>{detail.notes}</div>
+                  <div style={{ fontSize: 14, color: '#333' }}>{detail.notes || '-'}</div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 

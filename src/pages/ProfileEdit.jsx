@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Space, Upload, Image } from 'antd';
-import { UserOutlined, MailOutlined, BankOutlined, ArrowLeftOutlined, InboxOutlined, FileTextOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, BankOutlined, ArrowLeftOutlined, InboxOutlined, FileTextOutlined, DeleteOutlined, DownloadOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'umi';
 import { clientAuth, upload } from '@/services/api';
 import { useI18n } from '../locales/I18nContext';
@@ -18,9 +18,43 @@ const ProfileEdit = () => {
     cr: [],
   });
   const user = JSON.parse(localStorage.getItem('clientUser') || '{}');
+  const authStatus = user.authStatus || 'pending';
+  const authReason = user.authReason || '';
+
+  const AUTH_CONFIG = {
+    null: {
+      icon: <ExclamationCircleOutlined />,
+      bg: '#f0f4ff',
+      border: '#c7d2fe',
+      color: '#6366f1',
+      text: 'nav.authUnsubmitted',
+    },
+    pending: {
+      icon: <ClockCircleOutlined />,
+      bg: '#fff7e6',
+      border: '#ffd591',
+      color: '#fa8c16',
+      text: 'nav.authPending',
+    },
+    approved: {
+      icon: <CheckCircleOutlined />,
+      bg: '#f0fff4',
+      border: '#95de64',
+      color: '#52c41a',
+      text: 'nav.authApproved',
+    },
+    rejected: {
+      icon: <CloseCircleOutlined />,
+      bg: '#fff1f0',
+      border: '#ffccc7',
+      color: '#f5222d',
+      text: 'nav.authRejected',
+    },
+  };
+
+  const authCfg = AUTH_CONFIG[authStatus] || AUTH_CONFIG.pending;
 
   useEffect(() => {
-    // 已上传的资质显示出来
     if (user.businessLicense) {
       setFileList(prev => ({ ...prev, businessLicense: [{
         uid: '-1', name: '营业执照', status: 'done', url: user.businessLicense, _uploaded: true,
@@ -53,7 +87,7 @@ const ProfileEdit = () => {
         message.success('上传成功');
       }
     } catch (e) {
-      // 错误已由拦截器统一处理
+      message.error('上传失败：' + (e.message || '请重试'));
     }
   };
 
@@ -125,7 +159,7 @@ const ProfileEdit = () => {
     const cr = fileList.cr?.[0]?.url;
 
     if (!businessLicense && !(br && cr)) {
-      message.error('请上传营业执照或BR 、CR 文件');
+      message.error('请上传营业执照，或同时上传BR和CR文件');
       return;
     }
 
@@ -135,12 +169,12 @@ const ProfileEdit = () => {
         name: values.name,
         company: values.company,
         phone: values.phone,
-        businessLicense,
-        br,
-        cr,
+        businessLicense: fileList.businessLicense?.[0]?.url || null,
+        br: fileList.br?.[0]?.url || null,
+        cr: fileList.cr?.[0]?.url || null,
       });
-      // 更新本地用户
-      const updatedUser = { ...user, name: values.name, company: values.company, businessLicense, br, cr };
+      // 用后端返回的 authStatus 同步本地（后端会自动判断：改了证照→pending，否则不变）
+      const updatedUser = { ...user, ...res.data, name: values.name, company: values.company };
       localStorage.setItem('clientUser', JSON.stringify(updatedUser));
       message.success('保存成功');
       navigate('/client/profile');
@@ -170,6 +204,42 @@ const ProfileEdit = () => {
           返回
         </Button>
         <h2 style={{ fontSize: 22, fontWeight: 600, color: '#333', marginBottom: 28 }}>编辑资料</h2>
+
+        {/* 认证状态卡片 */}
+        <div style={{
+          background: authCfg.bg,
+          border: `1px solid ${authCfg.border}`,
+          borderRadius: 14,
+          padding: '16px 20px',
+          marginBottom: 28,
+          display: 'flex',
+          alignItems: authStatus === 'rejected' && authReason ? 'flex-start' : 'center',
+          gap: 14,
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%',
+            background: '#fff', border: `2px solid ${authCfg.border}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 20, color: authCfg.color }}>{authCfg.icon}</span>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: authStatus === 'rejected' && authReason ? 4 : 0 }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{t(authCfg.text)}</span>
+            </div>
+            {authStatus === 'rejected' && authReason ? (
+              <div style={{ fontSize: 13, color: '#cf1322', lineHeight: 1.5 }}>
+                <span style={{ fontWeight: 600 }}>{t('nav.authRejectReason') || '拒绝原因'}：</span>
+                <span>{authReason}</span>
+              </div>
+            ) : authStatus === 'pending' ? (
+              <div style={{ fontSize: 13, color: '#92400e' }}>审核通常需要 1-2 个工作日，请耐心等待。</div>
+            ) : authStatus === 'null' ? (
+              <div style={{ fontSize: 13, color: '#4b5563' }}>请上传资质材料完成认证，认证通过后即可使用完整功能。</div>
+            ) : null}
+          </div>
+        </div>
 
         {/* 个人信息 */}
         <div>

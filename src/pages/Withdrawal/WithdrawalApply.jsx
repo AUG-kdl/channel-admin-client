@@ -45,6 +45,7 @@ const WithdrawalApply = () => {
 
   const amount = parseFloat(form.getFieldValue('amount') || 0);
   const fee = !isNaN(amount) && amount > 0 ? amount * 0.002 : null;
+  const arrival = !isNaN(amount) && amount > 0 ? amount - fee : null;
 
   const handleSubmit = async (values) => {
     setSubmitting(true);
@@ -58,6 +59,7 @@ const WithdrawalApply = () => {
         channel: user.channel,
         salesToken: user.salesToken,
         handlingFee: fee || 0,
+        arrivalAmount: arrival || 0,
       });
       message.success(t('withdrawalApply.success'));
       navigate('/client/withdrawal');
@@ -192,10 +194,18 @@ const WithdrawalApply = () => {
               </Form.Item>
 
               {fee !== null && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: '#f5f3ff', borderRadius: 8, marginBottom: 16, marginLeft: '21%', marginTop: -8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: '#f5f3ff', borderRadius: 8, marginBottom: 8, marginLeft: '21%', marginTop: -8 }}>
                   <span style={{ fontSize: 13, color: '#4b5563' }}>{t('withdrawalApply.fee')}</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: '#667eea' }}>
                     {fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {form.getFieldValue('currency') || ''}
+                  </span>
+                </div>
+              )}
+              {arrival !== null && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: '#f0fff4', borderRadius: 8, marginBottom: 16, marginLeft: '21%', marginTop: -8 }}>
+                  <span style={{ fontSize: 13, color: '#4b5563' }}>{t('withdrawalApply.arrivalAmount')}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#52c41a' }}>
+                    {arrival.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {form.getFieldValue('currency') || ''}
                   </span>
                 </div>
               )}

@@ -44,7 +44,7 @@ const Exchange = () => {
       setData(res.data?.list || []);
       setTotal(res.data?.total || 0);
     } catch (e) {
-      // 错误已由拦截器统一处理
+      // Error handled by interceptor
     } finally {
       setLoading(false);
     }
@@ -82,21 +82,15 @@ const Exchange = () => {
       }},
     { title: t('exchangeList.createdAt'), dataIndex: 'createdAt', key: 'createdAt', width: 160,
       render: (v) => v ? moment(v).format('YYYY-MM-DD HH:mm') : '-' },
+    { title: t('exchangeList.notes') || '备注', dataIndex: 'notes', key: 'notes', width: 130,
+      render: (v) => <span style={{ fontSize: 12, color: v ? '#333' : '#bbb' }}>{v || '-'}</span> },
     { title: t('exchangeList.action'), key: 'action', width: 200, fixed: 'right',
-      render: (_, r) => {
-        const {status} = r || {};
-        const isShow = ['confirmed', 'approved'].includes(status);
-        return (
+      render: (_, r) => (
         <>
-        {
-          isShow && (
-          <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => navigate(`/client/exchange/${r.exchangeId}`)}>{t('exchangeList.detail')}</Button>
-          )
-        }
+          <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => navigate(`/client/exchange/${r.exchangeId}`)}>{t('exchangeList.exchangeDetail')}</Button>
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => navigate(`/client/exchange/exchangeInfo/${r.exchangeId}`)}>{t('exchangeList.view')}</Button>
         </>
-        );
-      }
+      )
     },
   ];
 
@@ -107,7 +101,7 @@ const Exchange = () => {
         {/* 顶部标题 */}
         <div style={{ padding: '0 4px' }}>
           <h1 style={{ fontSize: 22, fontWeight: 600, color: '#1a1a2e', margin: 0 }}>{t('exchangeList.title')}</h1>
-          <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>查询换汇记录，发起新换汇申请</p>
+          <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>{t('exchangeList.desc')}</p>
         </div>
 
         {/* 筛选 + 操作 */}
@@ -123,7 +117,7 @@ const Exchange = () => {
                 { value: 'approved', label: t('exchangeList.status_approved') },
               ]} />
             </Form.Item>
-            <Form.Item label={t('app.dateRange')} name="dateRange" style={{ marginBottom: 0 }}>
+            <Form.Item label={t('exchangeList.createdAt')} name="dateRange" style={{ marginBottom: 0 }}>
               <RangePicker allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
             <div style={{ display: 'flex', gap: 8 }}>

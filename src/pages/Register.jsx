@@ -45,7 +45,10 @@ const Register = () => {
         return;
       }
       setSendingCode(true);
-      const result = await email.sendCode(emailValue.email);
+      // 先检查邮箱是否已注册
+      await clientAuth.checkEmail(emailValue.email);
+      // 未注册，再发注册验证码
+      const result = await email.sendRegisterCode(emailValue.email);
       message.success(result.message || t('register.codeSent'));
       setCountdown(60);
     } catch (error) {

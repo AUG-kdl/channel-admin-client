@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { LockOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'umi';
-import { clientAuth } from '@/services/api';
+import { clientAuth, email } from '@/services/api';
 import { useI18n } from '../locales/I18nContext';
 
 const LANGS = [
@@ -33,7 +33,7 @@ const ForgotPassword = () => {
       const emailValue = await form.validateFields(['email']);
       if (!emailValue.email) return;
       setSending(true);
-      await clientAuth.sendResetCode({ email: emailValue.email });
+      await email.sendResetCode(emailValue.email);
       message.success(t('forgotPassword.sendSuccess'));
       setCountdown(60);
     } catch (e) {

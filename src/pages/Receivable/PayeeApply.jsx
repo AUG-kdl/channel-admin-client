@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'umi';
-import { Form, Input, Radio, Button, message, Card } from 'antd';
+import { Form, Input, Radio, Button, message, Card, Alert } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { payee } from '@/services/api';
 import { useI18n } from '../../locales/I18nContext';
@@ -15,10 +15,11 @@ const PayeeApply = () => {
   const [editRecord, setEditRecord] = useState(null);
 
   useEffect(() => {
-    if (location.state?.record) {
-      setEditRecord(location.state.record);
-      form.setFieldsValue(location.state.record);
-      setPayeeType(location.state.record.type);
+    const record = location.state?.record || location.state?.fromRejected;
+    if (record) {
+      setEditRecord(record);
+      form.setFieldsValue(record);
+      setPayeeType(record.type);
     }
   }, [location.state, form]);
 
@@ -65,6 +66,15 @@ const PayeeApply = () => {
         </div>
 
         <Card style={{ borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
+          {editRecord?.status === 'rejected' && editRecord?.rejectReason && (
+            <Alert
+              message={t('payeeApply.reapplyAlertTitle')}
+              description={`${t('payeeApply.reapplyAlertContent')}：${editRecord.rejectReason}`}
+              type="warning"
+              showIcon
+              style={{ marginBottom: 20, borderRadius: 8 }}
+            />
+          )}
           <Form form={form} layout="horizontal" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} initialValues={{ type: 'personal' }} style={{ marginTop: 8 }}>
             <Form.Item label={t('payeeApply.type')} name="type" rules={[{ required: true, message: t('payeeApply.type') }]}>
               <Radio.Group onChange={e => setPayeeType(e.target.value)}>

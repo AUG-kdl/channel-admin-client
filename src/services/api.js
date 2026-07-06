@@ -59,9 +59,10 @@ export const clientAuth = {
   register: (data) => api.post('/client/register', data),
   login: (data) => api.post('/client/login', data),
   me: () => api.get('/client/me'),
+  checkEmail: (email) => api.get('/client/check-email', { params: { email } }),
   changePassword: (data) => api.put('/client/password', data),
-  sendResetCode: (data) => api.post('/client/send-reset-code', data),
   resetPassword: (data) => api.post('/client/reset-password', data),
+  updateProfile: (data) => api.put('/client/profile', data),
 };
 
 // 牌价（公开）
@@ -134,7 +135,8 @@ export const downloadPdf = (url, filename) => {
 
 // 邮件
 export const email = {
-  sendCode: (email) => api.post('/email/send-code', { email }),
+  sendRegisterCode: (email) => api.post('/email/send-register-code', { email }),
+  sendResetCode: (email) => api.post('/email/send-reset-code', { email }),
 };
 
 // 文件上传

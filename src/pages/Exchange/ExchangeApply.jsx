@@ -14,7 +14,7 @@ const ExchangeApply = () => {
   const [toCurrency, setToCurrency] = useState('CNH');
   const [balances, setBalances] = useState({});
 
-  // 检查时间（北京时间 15:00-20:00）
+  // Check time (Beijing time 15:00-20:00)
   const checkTime = () => {
     const now = new Date();
     const utc8Hour = (now.getUTCHours() + 8) % 24;

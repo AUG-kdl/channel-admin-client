@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Tabs, Image, message } from 'antd';
-import { UserOutlined, EditOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { Tabs, Image } from 'antd';
+import { UserOutlined, EditOutlined, FilePdfOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'umi';
 import { clientAuth } from '@/services/api';
 import { useI18n } from '../locales/I18nContext';
@@ -128,22 +128,50 @@ const Profile = () => {
           <InfoRow label={t('profile.email')} value={user.email} />
           <InfoRow label={t('profile.company')} value={user.company} />
           <InfoRow label={t('profile.registerTime')} value="2024-01-15" />
+          {/* 认证状态 */}
+          <InfoRow label="认证状态" value={
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              {user.authStatus === 'approved' ? (
+                <><CheckCircleOutlined style={{ color: '#52c41a', fontSize: 14 }} /><span style={{ color: '#52c41a' }}>{t('nav.authApproved')}</span></>
+              ) : user.authStatus === 'pending' ? (
+                <><ClockCircleOutlined style={{ color: '#fa8c16', fontSize: 14 }} /><span style={{ color: '#fa8c16' }}>{t('nav.authPending')}</span></>
+              ) : user.authStatus === 'rejected' ? (
+                <><CloseCircleOutlined style={{ color: '#f5222d', fontSize: 14 }} /><span style={{ color: '#f5222d' }}>{t('nav.authRejected') || '已拒绝'}</span></>
+              ) : (
+                <><ExclamationCircleOutlined style={{ color: '#6366f1', fontSize: 14 }} /><span style={{ color: '#6366f1' }}>{t('nav.authUnsubmitted') || '未提交'}</span></>
+              )}
+            </span>
+          } />
+          {/* 拒绝原因 */}
+          {user.authStatus === 'rejected' && user.authReason && (
+            <div style={{ width: '100%', padding: '8px 0 4px' }}>
+              <div style={{ fontSize: 12, color: '#f5222d', background: '#fff1f0', border: '1px solid #ffccc7', borderRadius: 6, padding: '8px 12px', lineHeight: 1.5 }}>
+                <span style={{ fontWeight: 600 }}>{t('nav.authRejectReason') || '拒绝原因'}：</span>{user.authReason}
+              </div>
+            </div>
+          )}
         </InfoGrid>
       </div>
 
       {/* 证照文件 */}
-      {user.businessLicense || user.br || user.cr ? (
-        <div style={{ background: '#fff', borderRadius: 16, padding: '28px 32px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e', marginBottom: 20 }}>{t('profile.documents')}</div>
-          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            <FilePreview url={user.businessLicense} label={t('profile.businessLicense')} />
-            <FilePreview url={user.br} label={t('profile.br')} />
-            <FilePreview url={user.cr} label={t('profile.cr')} />
+      {(() => {
+        const bl = user.businessLicense;
+        const br = user.br;
+        const cr = user.cr;
+        if (!bl && !br && !cr) {
+          return <div style={{ background: '#fff', borderRadius: 16, padding: '24px 32px', color: '#f5222d', fontSize: 13 }}>{t('profile.docNotUploaded')}</div>;
+        }
+        return (
+          <div style={{ background: '#fff', borderRadius: 16, padding: '28px 32px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e', marginBottom: 20 }}>{t('profile.documents')}</div>
+            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+              <FilePreview url={bl} label={t('profile.businessLicense')} />
+              <FilePreview url={br} label={t('profile.br')} />
+              <FilePreview url={cr} label={t('profile.cr')} />
+            </div>
           </div>
-        </div>
-      ) : (
-        <div style={{ background: '#fff', borderRadius: 16, padding: '24px 32px', color: '#f5222d', fontSize: 13 }}>{t('profile.docNotUploaded')}</div>
-      )}
+        );
+      })()}
 
       {/* 专属销售 */}
       <div style={{ background: '#fff', borderRadius: 16, padding: '28px 32px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
