@@ -1,7 +1,7 @@
 import { defineConfig } from 'umi';
 
 export default defineConfig({
-  title: 'GenStarPay 管理端',
+  title: 'GenStarPay 客户端',
   links: [{ rel: 'icon', href: '/favicon.png', type: 'image/png' }],
   proxy: {
     '/api': {

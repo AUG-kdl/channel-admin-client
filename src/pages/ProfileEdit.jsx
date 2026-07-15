@@ -140,7 +140,7 @@ const ProfileEdit = () => {
             return false;
           }}
           showUploadList={false}
-          accept=".jpg,.jpeg,.png"
+          accept=".jpg,.jpeg,.png,.pdf"
           style={{ borderRadius: 8 }}
         >
           <p className="ant-upload-drag-icon">

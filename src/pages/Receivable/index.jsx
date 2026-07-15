@@ -71,7 +71,7 @@ const Receivable = () => {
   };
 
   const columns = [
-    { title: t('receivableList.payeeId'), dataIndex: 'payeeId', key: 'payeeId', width: 180,
+    { title: t('receivableList.payeeId'), dataIndex: 'payeeId', key: 'payeeId', width: 220,
       render: (v) => <span style={{ fontFamily: 'monospace', color: '#667eea', fontWeight: 500 }}>{v}</span> },
     { title: t('receivableList.type'), dataIndex: 'type', key: 'type', width: 90,
       render: (v) => (
@@ -174,11 +174,14 @@ const Receivable = () => {
               dataSource={data}
               columns={columns}
               rowKey="id"
-              scroll={{ x: 1400 }}
+              scroll={{ x: 2000 }}
               pagination={{
                 current: page, pageSize, total,
                 onChange: (p, ps) => { setPage(p); setPageSize(ps); },
-                showSizeChanger: false,
+                showSizeChanger: true,
+                pageSizeOptions: ['20', '50', '100'],
+                showQuickJumper: true,
+                showTotal: (t) => `共 ${t} 条`,
               }}
             />
           )}

@@ -111,11 +111,8 @@ const About = () => {
             padding: '40px',
           }}>
             <h2 style={{ fontSize: 22, fontWeight: 600, color: '#fff', marginBottom: 16 }}>{t('about.platformIntro')}</h2>
-            <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, lineHeight: 2, marginBottom: 12 }}>
-              {t('about.platformDesc1')}
-            </p>
             <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, lineHeight: 2, margin: 0 }}>
-              {t('about.platformDesc2')}
+              {t('about.platformDesc')}
             </p>
           </div>
         </div>

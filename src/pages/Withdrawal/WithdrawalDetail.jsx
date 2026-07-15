@@ -55,6 +55,8 @@ const WithdrawalDetail = () => {
   const [loading, setLoading] = useState(true);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [confirmProcessedVisible, setConfirmProcessedVisible] = useState(false);
+  const [confirmingProcessed, setConfirmingProcessed] = useState(false);
 
 
   useEffect(() => { fetchDetail(); }, [withdrawalId]);
@@ -85,9 +87,25 @@ const WithdrawalDetail = () => {
     }
   };
 
+  const handleConfirmProcessed = async () => {
+    setConfirmingProcessed(true);
+    try {
+      await withdrawal.customerConfirm(withdrawalId);
+      message.success(t('withdrawalDetail.success'));
+      setConfirmProcessedVisible(false);
+      fetchDetail();
+    } catch (e) {
+      // Error handled by interceptor
+    } finally {
+      setConfirmingProcessed(false);
+    }
+  };
+
   const status = detail?.status;
   const files = Array.isArray(detail?.proofFiles) ? detail.proofFiles : [];
   const isPending = status === 'pending_review';
+  const isProcessed = status === 'processed';
+  const isConfirmed = status === 'confirmed';
   const isUploaded = status === 'uploaded';
   const isCompleted = status === 'completed';
 
@@ -116,29 +134,50 @@ const WithdrawalDetail = () => {
             {/* 步骤条 */}
             <div style={{ padding: '28px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
               {isCompleted ? (
-                <Steps current={1} status="finish" items={[{ title: t('withdrawalDetail.step1') }, { title: t('withdrawalDetail.step2') }]} />
+                <Steps current={2} status="finish" items={[{ title: t('withdrawalDetail.step1') }, { title: t('withdrawalDetail.step2') }, { title: t('withdrawalDetail.step3') }]} />
               ) : (
-                <Steps current={isUploaded ? 1 : 0} items={[{ title: t('withdrawalDetail.step1') }, { title: t('withdrawalDetail.step2') }]} />
+                <Steps current={(isUploaded || isConfirmed) ? 1 : 0} status={isProcessed ? 'process' : undefined} items={[{ title: t('withdrawalDetail.step1') }, { title: t('withdrawalDetail.step2') }, { title: t('withdrawalDetail.step3') }]} />
               )}
             </div>
 
-            {/* 待处理 */}
-            {isPending && (
+            {/* 待处理 / 处理中 */}
+            {(isPending || isProcessed) && (
               <div style={{ padding: '32px 32px 28px', textAlign: 'center' }}>
                 <ClockCircleOutlined style={{ fontSize: 40, color: '#fa8c16', marginBottom: 12 }} />
                 <div style={{ fontSize: 16, fontWeight: 600, color: '#333', marginBottom: 6 }}>{t('withdrawalDetail.waitingUpload')}</div>
                 <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 24 }}>{t('withdrawalDetail.waitingUploadDesc')}</div>
                 <div style={{ fontSize: 32, fontWeight: 700, color: '#667eea', marginBottom: 8 }}>{fmt(detail.amount)} {detail.currency}</div>
                 <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 28 }}>{t('withdrawalDetail.payee')}：{detail.payeeName}</div>
-                <Button size="large" onClick={() => navigate('/client/withdrawal')} style={{ width: 160, height: 48, borderRadius: 12, fontSize: 15, border: '1px solid #e5e7eb', color: '#374151', background: '#fff' }}>
-                  {t('withdrawalDetail.backToListBtn')}
-                </Button>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <Button size="large" onClick={() => navigate('/client/withdrawal')} style={{ width: 160, height: 48, borderRadius: 12, fontSize: 15, border: '1px solid #e5e7eb', color: '#374151', background: '#fff' }}>
+                    {t('withdrawalDetail.backToListBtn')}
+                  </Button>
+                  {isProcessed && (
+                    <Button
+                      type="primary"
+                      size="large"
+                      onClick={() => setConfirmProcessedVisible(true)}
+                      style={{
+                        width: 200, height: 48, borderRadius: 12, fontSize: 15,
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        border: 'none', boxShadow: '0 4px 16px rgba(102,126,234,0.3)',
+                      }}
+                    >
+                      {t('withdrawalDetail.confirmProcessedBtn')}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* 已上传 */}
-            {isUploaded && (
+            {/* 已上传 / 已确认 */}
+            {(isUploaded || isConfirmed) && (
               <div style={{ padding: '32px 32px 28px' }}>
+                {isConfirmed && (
+                  <div style={{ background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#ad6800', textAlign: 'center' }}>
+                    {t('withdrawalDetail.waitingConfirmUploadDesc')}
+                  </div>
+                )}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 32px', marginBottom: 24 }}>
                   <div style={{ textAlign: 'center', padding: '16px 0', borderRight: '1px solid #f0f0f0' }}>
                     <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('withdrawalDetail.amount')}</div>
@@ -174,18 +213,20 @@ const WithdrawalDetail = () => {
                   <Button size="large" onClick={() => navigate('/client/withdrawal')} style={{ width: 160, height: 48, borderRadius: 12, fontSize: 15, border: '1px solid #e5e7eb', color: '#374151', background: '#fff' }}>
                     {t('withdrawalDetail.backToListBtn')}
                   </Button>
-                  <Button
-                    type="primary"
-                    size="large"
-                    onClick={() => setConfirmVisible(true)}
-                    style={{
-                      width: 200, height: 48, borderRadius: 12, fontSize: 15,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      border: 'none', boxShadow: '0 4px 16px rgba(102,126,234,0.3)',
-                    }}
-                  >
-                    <CheckCircleOutlined />{t('withdrawalDetail.confirmCompleteBtn')}
-                  </Button>
+                  {!isConfirmed && (
+                    <Button
+                      type="primary"
+                      size="large"
+                      onClick={() => setConfirmVisible(true)}
+                      style={{
+                        width: 200, height: 48, borderRadius: 12, fontSize: 15,
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        border: 'none', boxShadow: '0 4px 16px rgba(102,126,234,0.3)',
+                      }}
+                    >
+                      <CheckCircleOutlined />{t('withdrawalDetail.confirmCompleteBtn')}
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -270,8 +311,16 @@ const WithdrawalDetail = () => {
             <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.payee')}</div>
             <div style={{ fontSize: 14, fontWeight: 500, color: '#333', marginBottom: 8 }}>{detail?.payeeName}</div>
             <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.amount')}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#667eea' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#667eea', marginBottom: 8 }}>
               {detail ? `${fmt(detail.amount)} ${detail.currency}` : ''}
+            </div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.handlingFee')}</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#333', marginBottom: 8 }}>
+              {detail?.handlingFee != null ? `${fmt(detail.handlingFee)} ${detail.currency}` : '—'}
+            </div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.arrivalAmount')}</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#52c41a' }}>
+              {detail?.arrivalAmount != null ? `${fmt(detail.arrivalAmount)} ${detail.currency}` : '—'}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -300,6 +349,77 @@ const WithdrawalDetail = () => {
               }}
             >
               {confirming ? '...' : t('withdrawalDetail.confirmBtn')}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 提现/付款确认弹框 */}
+      <Modal
+        open={confirmProcessedVisible}
+        onCancel={() => setConfirmProcessedVisible(false)}
+        footer={null}
+        closable={false}
+        centered
+        width={360}
+        styles={{ body: { padding: 0, overflow: 'hidden' } }}
+      >
+        <div style={{ textAlign: 'center', padding: '32px 24px 24px' }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+            border: '2px solid #c4b5fd',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px',
+          }}>
+            <CheckCircleOutlined style={{ fontSize: 28, color: '#7c3aed' }} />
+          </div>
+          <div style={{ fontSize: 17, fontWeight: 600, color: '#1a1a2e', marginBottom: 8 }}>{t('withdrawalDetail.confirmProcessedTitle')}</div>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 28, lineHeight: 1.6 }}>
+            {t('withdrawalDetail.confirmProcessedDesc')}
+          </div>
+          <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.payee')}</div>
+            <div style={{ fontSize: 14, fontWeight: 500, color: '#333', marginBottom: 8 }}>{detail?.payeeName}</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.amount')}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#667eea', marginBottom: 8 }}>
+              {detail ? `${fmt(detail.amount)} ${detail.currency}` : ''}
+            </div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.handlingFee')}</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#333', marginBottom: 8 }}>
+              {detail?.handlingFee != null ? `${fmt(detail.handlingFee)} ${detail.currency}` : '—'}
+            </div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.arrivalAmount')}</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#52c41a' }}>
+              {detail?.arrivalAmount != null ? `${fmt(detail.arrivalAmount)} ${detail.currency}` : '—'}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              onClick={() => setConfirmProcessedVisible(false)}
+              style={{
+                flex: 1, height: 44, borderRadius: 10, border: '1px solid #e5e7eb',
+                background: '#fff', color: '#374151', fontSize: 15, fontWeight: 500,
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+            >
+              {t('withdrawalDetail.cancel')}
+            </button>
+            <button
+              onClick={handleConfirmProcessed}
+              disabled={confirmingProcessed}
+              style={{
+                flex: 1, height: 44, borderRadius: 10,
+                background: confirmingProcessed ? '#9ca3af' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none', color: '#fff', fontSize: 15, fontWeight: 500,
+                cursor: confirmingProcessed ? 'not-allowed' : 'pointer',
+                boxShadow: '0 4px 12px rgba(102,126,234,0.3)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {confirmingProcessed ? '...' : t('withdrawalDetail.confirmBtn')}
             </button>
           </div>
         </div>

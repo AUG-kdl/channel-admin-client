@@ -103,6 +103,13 @@ const ExchangeApply = () => {
             />
           )}
           <Form form={form} layout="horizontal" onFinish={handleSubmit} labelAlign="right" labelCol={{ span: 5 }} wrapperCol={{ span: 17 }}>
+            <style>{`
+              .ant-form-item .ant-form-item-label > label {
+                white-space: normal;
+                word-break: break-word;
+                line-height: 1.4;
+              }
+            `}</style>
             <Form.Item label={t('exchangeApply.fromCurrency')} name="fromCurrency" rules={[{ required: true, message: t('exchangeApply.fromCurrencySelect') }]} initialValue="USD">
               <Select size="large" onChange={val => {
                 setFromCurrency(val);
@@ -148,7 +155,10 @@ const ExchangeApply = () => {
                 <Button size="large" onClick={() => navigate('/client/exchange')} style={{ width: 140, height: 52, borderRadius: 12, border: '1px solid #d9d9d9', fontSize: 16, color: '#333', background: '#fff' }}>{t('exchangeApply.cancel')}</Button>
                 <Button type="primary" size="large" htmlType="submit" loading={submitting} disabled={!inTimeWindow} style={{
                   width: 200, height: 52, borderRadius: 12, color: '#fff',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', fontSize: 16,
+                  background: inTimeWindow
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    : '#d9d9d9',
+                  border: 'none', fontSize: 16,
                 }}>{t('exchangeApply.submit')}</Button>
               </div>
             </Form.Item>

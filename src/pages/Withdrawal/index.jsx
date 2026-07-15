@@ -38,13 +38,15 @@ const Withdrawal = () => {
 
   const STATUS_MAP = {
     pending_review: { text: t('withdrawalList.status_pending_review'), color: '#fa8c16', bg: '#fff7e6' },
-    uploaded:     { text: t('withdrawalList.status_uploaded'), color: '#1890ff', bg: '#e6f7ff' },
-    completed:   { text: t('withdrawalList.status_completed'), color: '#52c41a', bg: '#f0fff4' },
+    processed:    { text: t('withdrawalList.status_processed'), color: '#1890ff', bg: '#e6f7ff' },
+    confirmed:     { text: t('withdrawalList.status_confirmed'), color: '#722ed1', bg: '#f9f0ff' },
+    uploaded:      { text: t('withdrawalList.status_uploaded'), color: '#1890ff', bg: '#e6f7ff' },
+    completed:     { text: t('withdrawalList.status_completed'), color: '#52c41a', bg: '#f0fff4' },
   };
 
   const REGION_MAP = {
     mainland: t('withdrawalList.region_mainland'),
-    hk_mo: t('withdrawalList.region_hk_mo'),
+    hk: t('withdrawalList.region_hk'),
   };
 
   const fetchData = async (params = {}) => {
@@ -91,7 +93,12 @@ const Withdrawal = () => {
         </span>
       ) },
     { title: t('withdrawalList.payeeName'), dataIndex: 'payeeName', key: 'payeeName', width: 200,
-      render: (v) => v },
+      render: (v, r) => v || r.payeeSnapName || r.payeeSnapCompanyName || '-' },
+    { title: '收款账号', key: 'payeeAccount', width: 180,
+      render: (_, r) => {
+        const acc = r.payeeSnapBankAccount || r.payeeSnapBankCard || r.payeeAccount || '-';
+        return <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#374151' }}>{acc}</span>;
+      } },
     { title: t('withdrawalList.region'), dataIndex: 'region', key: 'region', width: 100,
       render: (v) => REGION_MAP[v] || (v || '') },
     { title: t('withdrawalList.currency'), dataIndex: 'currency', key: 'currency', width: 90,
@@ -99,11 +106,11 @@ const Withdrawal = () => {
     { title: t('withdrawalList.amount'), key: 'amount', width: 140,
       render: (_, r) => (
         <span style={{ fontWeight: 600, color: '#667eea', fontSize: 15 }}>
-          {parseFloat(r.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          {parseFloat(r.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} {r.currency || ''}
         </span>
       ) },
     { title: t('withdrawalList.handlingFee'), dataIndex: 'handlingFee', key: 'handlingFee', width: 90,
-      render: (v) => v != null ? <span style={{ color: '#ff4d4f', fontSize: 13 }}>{parseFloat(v).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span> : '-' },
+      render: (v, r) => v != null ? <span style={{ color: '#ff4d4f', fontSize: 13 }}>{parseFloat(v).toLocaleString(undefined, { minimumFractionDigits: 2 })} {r.currency || ''}</span> : '-' },
     { title: t('withdrawalList.arrivalAmount'), key: 'arrivalAmount', width: 140,
       render: (_, r) => (
         <span style={{ fontWeight: 600, color: '#52c41a', fontSize: 14 }}>
@@ -162,24 +169,26 @@ const Withdrawal = () => {
             <Form.Item label={t('withdrawalList.filterStatus')} name="status" style={{ marginBottom: 0 }}>
               <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'pending_review', label: t('withdrawalList.status_pending_review') },
+                { value: 'processed', label: t('withdrawalList.status_processed') },
+                { value: 'confirmed', label: t('withdrawalList.status_confirmed') },
                 { value: 'uploaded', label: t('withdrawalList.status_uploaded') },
                 { value: 'completed', label: t('withdrawalList.status_completed') },
               ]} />
             </Form.Item>
             <Form.Item label={t('withdrawalList.filterRegion')} name="region" style={{ marginBottom: 0 }}>
-              <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 160, height: 36 }} options={[
-                { value: 'mainland', label: t('withdrawalList.region_mainland') },
-                { value: 'hk_mo', label: t('withdrawalList.region_hk_mo') },
+              <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
+                { value: 'mainland', label: t('withdrawalList.mainland') },
+                { value: 'hongkong', label: t('withdrawalList.hongkong') },
               ]} />
             </Form.Item>
-            <Form.Item label={t('withdrawalList.currency')} name="currency" style={{ marginBottom: 0 }}>
-              <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 160, height: 36 }} options={[
+            <Form.Item label={t('withdrawalList.currency')} name="currency" style={{ marginBottom: 12 }}>
+              <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'CNY', label: 'CNY' },
                 { value: 'USD', label: 'USD' },
               ]} />
             </Form.Item>
             <Form.Item label={t('withdrawalList.dateRange')} name="dateRange" style={{ marginBottom: 0 }}>
-              <RangePicker style={{ width: 240, height: 36 }} />
+              <RangePicker style={{ width: 280, height: 36 }} />
             </Form.Item>
             <div style={{ display: 'flex', gap: 8 }}>
               <Button type="primary" onClick={handleSearch} style={{ height: 36, borderRadius: 8, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', boxShadow: '0 4px 12px rgba(102,126,234,0.3)' }}>{t('app.search')}</Button>
@@ -201,11 +210,14 @@ const Withdrawal = () => {
               dataSource={data}
               columns={columns}
               rowKey="withdrawalId"
-              scroll={{ x: 1500 }}
+              scroll={{ x: 2200 }}
               pagination={{
                 current: page, pageSize, total,
                 onChange: (p, ps) => { setPage(p); setPageSize(ps); },
-                showSizeChanger: false,
+                showSizeChanger: true,
+                pageSizeOptions: ['20', '50', '100'],
+                showQuickJumper: true,
+                showTotal: (t) => `共 ${t} 条`,
               }}
             />
           )}

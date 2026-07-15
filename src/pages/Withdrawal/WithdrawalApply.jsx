@@ -15,6 +15,7 @@ const WithdrawalApply = () => {
   const [selectedPayee, setSelectedPayee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [balances, setBalances] = useState({});
+  const [selectedCurrency, setSelectedCurrency] = useState('CNY');
 
   useEffect(() => {
     const load = async () => {
@@ -26,10 +27,8 @@ const WithdrawalApply = () => {
         setPayees(payeeRes.data?.list || []);
         // 解析钱包余额
         const b = {};
-        (walletRes.data || []).forEach(item => { b[item.currency] = parseFloat(item.balance); });
+        (walletRes.data || []).forEach(item => { b[item.currency] = parseFloat(item.balance || 0); });
         setBalances(b);
-        // 默认填满 CNY 余额
-        form.setFieldsValue({ amount: String(b['CNY'] || 0) });
       } catch (e) {
         // 错误已由拦截器统一处理
       } finally {
@@ -38,14 +37,6 @@ const WithdrawalApply = () => {
     };
     load();
   }, []);
-
-  const handleCurrencyChange = (currency) => {
-    form.setFieldsValue({ amount: String(balances[currency] || 0) });
-  };
-
-  const amount = parseFloat(form.getFieldValue('amount') || 0);
-  const fee = !isNaN(amount) && amount > 0 ? amount * 0.002 : null;
-  const arrival = !isNaN(amount) && amount > 0 ? amount - fee : null;
 
   const handleSubmit = async (values) => {
     setSubmitting(true);
@@ -58,8 +49,6 @@ const WithdrawalApply = () => {
         payeeType: selected?.type,
         channel: user.channel,
         salesToken: user.salesToken,
-        handlingFee: fee || 0,
-        arrivalAmount: arrival || 0,
       });
       message.success(t('withdrawalApply.success'));
       navigate('/client/withdrawal');
@@ -96,15 +85,22 @@ const WithdrawalApply = () => {
             <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spin size="large" /></div>
           ) : (
             <Form form={form} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} onFinish={handleSubmit} initialValues={{ region: 'mainland', subjectType: 'personal', currency: 'CNY' }} style={{ marginTop: 8 }}>
+              <style>{`
+                .ant-form-item .ant-form-item-label > label {
+                  white-space: normal;
+                  word-break: break-word;
+                  line-height: 1.4;
+                }
+              `}</style>
               <Form.Item label={t('withdrawalApply.region')} name="region" rules={[{ required: true }]}>
                 <Radio.Group>
                   <Radio value="mainland">{t('withdrawalApply.mainland')}</Radio>
-                  <Radio value="hk_mo">{t('withdrawalApply.hkMo')}</Radio>
+                  <Radio value="hk">{t('withdrawalApply.hk')}</Radio>
                 </Radio.Group>
               </Form.Item>
 
               <Form.Item label={t('withdrawalApply.subjectType')} name="subjectType" rules={[{ required: true }]}>
-                <Radio.Group onChange={e => setPayeeType(e.target.value)}>
+                <Radio.Group onChange={e => { setPayeeType(e.target.value); setSelectedPayee(null); form.setFieldsValue({ payeeId: undefined }); }}>
                   <Radio value="personal">{t('withdrawalApply.personal')}</Radio>
                   <Radio value="enterprise">{t('withdrawalApply.enterprise')}</Radio>
                 </Radio.Group>
@@ -152,17 +148,22 @@ const WithdrawalApply = () => {
                   <div style={{ background: '#f0f4ff', border: '1px solid #dde3f5', borderRadius: 10, padding: '14px 18px', marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 24px' }}>
                     {selectedPayee.type === 'personal' ? (
                       <>
-                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelName')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>{selectedPayee.name}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelName')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>{selectedPayee.name || '-'}</div></div>
                         <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelPayeeId')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#667eea', fontFamily: 'monospace' }}>{selectedPayee.payeeId}</div></div>
-                        <div style={{ gridColumn: '1 / -1' }}><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankBranch')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankBranch}</div></div>
-                        <div style={{ gridColumn: '1 / -1' }}><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankCard')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.bankCard}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.phone')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.phone || '-'}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.idCard')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.idCard || '-'}</div></div>
+                        <div style={{ gridColumn: '1 / -1' }}><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankBranch')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankBranch || '-'}</div></div>
+                        <div style={{ gridColumn: '1 / -1' }}><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankCard')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.bankCard || '-'}</div></div>
                       </>
                     ) : (
                       <>
-                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelCompanyName')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>{selectedPayee.companyName}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelCompanyName')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>{selectedPayee.companyName || '-'}</div></div>
                         <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelPayeeId')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#667eea', fontFamily: 'monospace' }}>{selectedPayee.payeeId}</div></div>
-                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankName')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankName}</div></div>
-                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankAccount')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.bankAccount}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankName')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankName || '-'}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankAccount')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.bankAccount || '-'}</div></div>
+                        <div style={{ gridColumn: 'span 2' }}><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.bankAddress')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankAddress || '-'}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.swiftCode')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.swiftCode || '-'}</div></div>
+                        <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.bankCode')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.bankCode || '-'}</div></div>
                       </>
                     )}
                   </div>
@@ -173,7 +174,8 @@ const WithdrawalApply = () => {
                 <Select
                   size="large"
                   allowClear
-                  onChange={handleCurrencyChange}
+                  placeholder={t('withdrawalApply.currencySelect')}
+                  onChange={(val) => { setSelectedCurrency(val); form.setFieldsValue({ amount: undefined }); }}
                   options={[
                     { value: 'CNY', label: `CNY ${t('home.currencyCNY')}` },
                     { value: 'USD', label: `USD ${t('home.currencyUSD')}` },
@@ -182,33 +184,40 @@ const WithdrawalApply = () => {
                   ]}
                 />
               </Form.Item>
+              {selectedCurrency && (
+                <div style={{ background: '#f0fff4', border: '1px solid #b7eb8f', borderRadius: 10, padding: '12px 18px', marginBottom: 16, width: '64%', marginLeft: '25%' }}>
+                  <div style={{ fontSize: 12, color: '#52c41a', marginBottom: 2 }}>{t('withdrawalApply.availableAmount')}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#52c41a' }}>
+                    {balances[selectedCurrency] != null
+                      ? balances[selectedCurrency].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : '—'} {selectedCurrency}
+                  </div>
+                </div>
+              )}
 
-              <Form.Item label={t('withdrawalApply.amount')} name="amount" rules={[{ required: true, message: t('withdrawalApply.amountPlaceholder') }]}>
+              <Form.Item label={t('withdrawalApply.amount')} name="amount" rules={[
+                { required: true, message: t('withdrawalApply.amountPlaceholder') },
+                { pattern: /^[0-9]*\.?[0-9]*$/, message: t('withdrawalApply.amountFormatError') },
+                {
+                  validator: (_, value) => {
+                    if (!value || !selectedCurrency) return Promise.resolve();
+                    const balance = balances[selectedCurrency] || 0;
+                    if (parseFloat(value) > balance) {
+                      return Promise.reject(t('withdrawalApply.amountExceedBalance', {
+                        amount: balances[selectedCurrency].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        currency: selectedCurrency,
+                      }));
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}>
                 <Input
                   size="large"
-                  type="number"
                   placeholder={t('withdrawalApply.amountPlaceholder')}
-                  disabled
                   style={{ borderRadius: 8 }}
                 />
               </Form.Item>
-
-              {fee !== null && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: '#f5f3ff', borderRadius: 8, marginBottom: 8, marginLeft: '21%', marginTop: -8 }}>
-                  <span style={{ fontSize: 13, color: '#4b5563' }}>{t('withdrawalApply.fee')}</span>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#667eea' }}>
-                    {fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {form.getFieldValue('currency') || ''}
-                  </span>
-                </div>
-              )}
-              {arrival !== null && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: '#f0fff4', borderRadius: 8, marginBottom: 16, marginLeft: '21%', marginTop: -8 }}>
-                  <span style={{ fontSize: 13, color: '#4b5563' }}>{t('withdrawalApply.arrivalAmount')}</span>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#52c41a' }}>
-                    {arrival.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {form.getFieldValue('currency') || ''}
-                  </span>
-                </div>
-              )}
 
               <Form.Item label={t('withdrawalApply.remark')} name="notes">
                 <Input.TextArea placeholder={t('withdrawalApply.remarkPlaceholder')} rows={3} allowClear style={{ borderRadius: 8 }} />

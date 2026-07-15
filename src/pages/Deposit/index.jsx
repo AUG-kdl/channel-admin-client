@@ -44,6 +44,12 @@ const Deposit = () => {
   const [reapplyRecord, setReapplyRecord] = useState(null);
   const [proofVisible, setProofVisible] = useState(false);
   const [currentProofs, setCurrentProofs] = useState([]);
+  const [tradeVisible, setTradeVisible] = useState(false);
+  const [currentTrade, setCurrentTrade] = useState([]);
+  const [agreeVisible, setAgreeVisible] = useState(false);
+  const [currentAgree, setCurrentAgree] = useState([]);
+  const [logisticsVisible, setLogisticsVisible] = useState(false);
+  const [currentLogistics, setCurrentLogistics] = useState([]);
 
   const statusMap = {
     pending_review: { text: t('depositList.status_pending_review'), color: '#fa8c16', bg: '#fff7e6' },
@@ -115,6 +121,24 @@ const Deposit = () => {
           </Button>
         );
       } },
+    { title: t('depositApply.tradeContract'), key: 'tradeContract', width: 90,
+      render: (_, r) => {
+        const arr = parseProofFiles(r.tradeContract);
+        if (arr.length === 0) return <span style={{ color: '#d0d0d0', fontSize: 13 }}>—</span>;
+        return <Button type="link" size="small" style={{ padding: 0, color: '#667eea' }} onClick={() => { setCurrentTrade(arr); setTradeVisible(true); }}>{arr.length}个</Button>;
+      } },
+    { title: t('depositApply.tradeAgreement'), key: 'agreementFile', width: 90,
+      render: (_, r) => {
+        const arr = parseProofFiles(r.agreementFile);
+        if (arr.length === 0) return <span style={{ color: '#d0d0d0', fontSize: 13 }}>—</span>;
+        return <Button type="link" size="small" style={{ padding: 0, color: '#667eea' }} onClick={() => { setCurrentAgree(arr); setAgreeVisible(true); }}>{arr.length}个</Button>;
+      } },
+    { title: t('depositApply.logisticsInfo'), key: 'logisticsFile', width: 90,
+      render: (_, r) => {
+        const arr = parseProofFiles(r.logisticsFile);
+        if (arr.length === 0) return <span style={{ color: '#d0d0d0', fontSize: 13 }}>—</span>;
+        return <Button type="link" size="small" style={{ padding: 0, color: '#667eea' }} onClick={() => { setCurrentLogistics(arr); setLogisticsVisible(true); }}>{arr.length}个</Button>;
+      } },
     { title: t('depositList.status'), dataIndex: 'status', key: 'status', width: 110,
       render: (s) => {
         const m = statusMap[s] || statusMap.pending_review;
@@ -154,7 +178,7 @@ const Deposit = () => {
         <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
           <Form form={listForm} layout="inline" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', rowGap: 12, columnGap: 20 }}>
             <Form.Item label={t('depositList.depositOrderNo')} name="orderNo" style={{ marginBottom: 0 }}>
-              <Input placeholder="请输入入金订单号" allowClear style={{ width: 280, height: 36 }} />
+              <Input placeholder={t('depositList.depositOrderNoPlaceholder')} allowClear style={{ width: 280, height: 36 }} />
             </Form.Item>
             <Form.Item label={t('depositList.filterStatus')} name="status" style={{ marginBottom: 0 }}>
               <Select placeholder={t('depositList.all')} allowClear style={{ width: 280, height: 36 }} options={[
@@ -205,7 +229,10 @@ const Deposit = () => {
                 pageSize,
                 total,
                 onChange: (p, ps) => { setPage(p); setPageSize(ps); },
-                showSizeChanger: false,
+                showSizeChanger: true,
+                pageSizeOptions: ['20', '50', '100'],
+                showQuickJumper: true,
+                showTotal: (t) => `共 ${t} 条`,
               }}
             />
           )}
@@ -254,6 +281,117 @@ const Deposit = () => {
           </div>
           {currentProofs.length === 0 && (
             <div style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>{t('depositList.noProof') || '暂无凭证'}</div>
+          )}
+        </Drawer>
+
+        {/* 贸易合同抽屉 */}
+        <Drawer title={t('depositApply.tradeContract')} placement="right" width={400} open={tradeVisible} onClose={() => setTradeVisible(false)}>
+          {currentTrade.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>暂无文件</div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              {currentTrade.map((f, i) => {
+                const handleDownload = () => { const a = document.createElement('a'); a.href = f.url; a.download = f.name || t('depositApply.tradeContract'); a.click(); };
+                if (isImage(f.url)) {
+                  return (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                      <Image src={f.url} alt={f.name} style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 8, border: '1px solid #f0f0f0', display: 'block' }} preview={{ mask: null }} />
+                      <div style={{ fontSize: 11, color: '#667eea', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={handleDownload}>{f.name}</div>
+                    </div>
+                  );
+                }
+                if (isPdf(f.url)) {
+                  return (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                      <div style={{ cursor: 'pointer', borderRadius: 8, overflow: 'hidden', border: '1px solid #f0f0f0', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 100 }} onClick={handleDownload}>
+                        <img src="/pdf-icon.png" alt="PDF" style={{ width: 48, height: 48 }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: '#667eea', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={handleDownload}>{f.name}</div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} style={{ textAlign: 'center', border: '1px solid #f0f0f0', borderRadius: 8, padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#667eea', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                    <Button type="link" size="small" onClick={handleDownload}>下载</Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Drawer>
+
+        {/* 代收付协议抽屉 */}
+        <Drawer title={t('depositApply.tradeAgreement')} placement="right" width={400} open={agreeVisible} onClose={() => setAgreeVisible(false)}>
+          {currentAgree.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>暂无文件</div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              {currentAgree.map((f, i) => {
+                const handleDownload = () => { const a = document.createElement('a'); a.href = f.url; a.download = f.name || t('depositApply.tradeAgreement'); a.click(); };
+                if (isImage(f.url)) {
+                  return (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                      <Image src={f.url} alt={f.name} style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 8, border: '1px solid #f0f0f0', display: 'block' }} preview={{ mask: null }} />
+                      <div style={{ fontSize: 11, color: '#667eea', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={handleDownload}>{f.name}</div>
+                    </div>
+                  );
+                }
+                if (isPdf(f.url)) {
+                  return (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                      <div style={{ cursor: 'pointer', borderRadius: 8, overflow: 'hidden', border: '1px solid #f0f0f0', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 100 }} onClick={handleDownload}>
+                        <img src="/pdf-icon.png" alt="PDF" style={{ width: 48, height: 48 }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: '#667eea', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={handleDownload}>{f.name}</div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} style={{ textAlign: 'center', border: '1px solid #f0f0f0', borderRadius: 8, padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#667eea', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                    <Button type="link" size="small" onClick={handleDownload}>下载</Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Drawer>
+
+        {/* 物流信息抽屉 */}
+        <Drawer title={t('depositApply.logisticsInfo')} placement="right" width={400} open={logisticsVisible} onClose={() => setLogisticsVisible(false)}>
+          {currentLogistics.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>暂无文件</div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              {currentLogistics.map((f, i) => {
+                const handleDownload = () => { const a = document.createElement('a'); a.href = f.url; a.download = f.name || t('depositApply.logisticsInfo'); a.click(); };
+                if (isImage(f.url)) {
+                  return (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                      <Image src={f.url} alt={f.name} style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 8, border: '1px solid #f0f0f0', display: 'block' }} preview={{ mask: null }} />
+                      <div style={{ fontSize: 11, color: '#667eea', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={handleDownload}>{f.name}</div>
+                    </div>
+                  );
+                }
+                if (isPdf(f.url)) {
+                  return (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                      <div style={{ cursor: 'pointer', borderRadius: 8, overflow: 'hidden', border: '1px solid #f0f0f0', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 100 }} onClick={handleDownload}>
+                        <img src="/pdf-icon.png" alt="PDF" style={{ width: 48, height: 48 }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: '#667eea', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} onClick={handleDownload}>{f.name}</div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} style={{ textAlign: 'center', border: '1px solid #f0f0f0', borderRadius: 8, padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#667eea', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                    <Button type="link" size="small" onClick={handleDownload}>下载</Button>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </Drawer>
 

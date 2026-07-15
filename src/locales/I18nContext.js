@@ -26,7 +26,7 @@ export function I18nProvider({ children }) {
     setVersion(v => v + 1);
   }, []);
 
-  const t = useCallback((key) => {
+  const t = useCallback((key, vars) => {
     const dict = LOCALES[locale] || LOCALES['zh-CN'];
     const keys = key.split('.');
     let val = dict;
@@ -34,7 +34,11 @@ export function I18nProvider({ children }) {
       if (val && typeof val === 'object') val = val[k];
       else return key;
     }
-    return typeof val === 'string' ? val : key;
+    if (typeof val !== 'string') return key;
+    if (vars) {
+      return val.replace(/\{(\w+)\}/g, (_, k) => vars[k] != null ? vars[k] : `{${k}}`);
+    }
+    return val;
   }, [locale]);
 
   // 直接取翻译对象（支持数组/对象，非字符串）

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'umi';
-import { Card, Spin, Row, Col, Input, Select, message } from 'antd';
-import { DollarOutlined, WalletOutlined, FileTextOutlined, RiseOutlined, UploadOutlined, SwapOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { Card, Spin, Row, Col, Input, Select, Button, message } from 'antd';
+import { DollarOutlined, WalletOutlined, FileTextOutlined, RiseOutlined, UploadOutlined, SwapOutlined, UserSwitchOutlined, PlusOutlined } from '@ant-design/icons';
 import { rate, wallet, exchange, deposit, withdrawal } from '@/services/api';
 import { useI18n } from '../locales/I18nContext';
 
@@ -11,6 +11,136 @@ const CURRENCY_MAP = {
   CNH: 'currencyCNH',
   RUB: 'currencyRUB',
 };
+
+// 操作指引 - 样式
+const guideCardStyle = {
+  background: '#fafbfc',
+  border: '1px solid #f0f0f2',
+  borderRadius: 14,
+  padding: '20px 16px',
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 180,
+};
+
+const guideLinkStyle = {
+  fontSize: 13,
+  color: '#1677ff',
+  textDecoration: 'none',
+  padding: '6px 10px',
+  borderRadius: 8,
+  background: '#fff',
+  border: '1px solid #e8e8f0',
+  display: 'block',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+};
+
+// 步骤头部（编号 + 标题）
+const StepHeader = ({ num, title }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 10, borderBottom: '1px solid #f0f0f2' }}>
+    <div style={{
+      width: 26,
+      height: 26,
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: 700,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    }}>
+      {num}
+    </div>
+    <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e' }}>{title}</div>
+  </div>
+);
+
+// 操作指引步骤条
+const stepperAccent = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+
+const StepNode = ({ num, icon, title, subtitle, color = '#667eea', isLast }) => (
+  <div style={{ display: 'flex', alignItems: 'stretch', flex: 1, minWidth: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0 }}>
+      {/* 数字在上 + 图标在下 */}
+      <div style={{
+        fontSize: 13,
+        fontWeight: 700,
+        color: color,
+        letterSpacing: 1,
+      }}>STEP {num}</div>
+      <div style={{
+        width: 52,
+        height: 52,
+        borderRadius: '50%',
+        background: stepperAccent,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        fontSize: 24,
+        boxShadow: `0 4px 12px ${color}33`,
+        marginTop: 6,
+      }}>
+        {icon}
+      </div>
+      {/* 标题 */}
+      <div style={{ marginTop: 12, fontSize: 14, fontWeight: 600, color: '#1a1a2e', textAlign: 'center' }}>{title}</div>
+      {subtitle && <div style={{ marginTop: 4, fontSize: 12, color: '#9095a3', textAlign: 'center' }}>{subtitle}</div>}
+    </div>
+    {/* 连接线（虚线） */}
+    {!isLast && (
+      <div style={{
+        flex: '0 0 60px',
+        alignSelf: 'center',
+        height: 2,
+        marginBottom: 28,
+        backgroundImage: 'linear-gradient(to right, #c9cfe0 50%, transparent 50%)',
+        backgroundSize: '10px 2px',
+        backgroundRepeat: 'repeat-x',
+      }} />
+    )}
+  </div>
+);
+
+// 无框链接按钮（带 →）
+const LinkBtn = ({ onClick, children }) => (
+  <span
+    onClick={onClick}
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      color: '#667eea',
+      fontSize: 13,
+      fontWeight: 500,
+      cursor: 'pointer',
+      padding: '4px 0',
+      transition: 'color 0.2s',
+    }}
+    onMouseEnter={e => e.currentTarget.style.color = '#764ba2'}
+    onMouseLeave={e => e.currentTarget.style.color = '#667eea'}
+  >
+    {children}
+  </span>
+);
+
+// 待办状态展示
+const TodoStatus = ({ hasTodo, t }) => (
+  <div style={{
+    fontSize: 13,
+    color: hasTodo ? '#fa8c16' : '#52c41a',
+    lineHeight: 1.6,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+  }}>
+    {hasTodo ? `ⓘ ${t('home.hasTodo')}` : `✓ ${t('home.noTodoStatus')}`}
+  </div>
+);
 
 const Home = () => {
   const navigate = useNavigate();
@@ -24,6 +154,8 @@ const Home = () => {
   const [toAmount, setToAmount] = useState('');
   const [currentTime, setCurrentTime] = useState('');
   const [todoList, setTodoList] = useState([]);
+  // 各模块待办状态（用于底部操作指引）{ deposit, exchange, withdrawal }
+  const [moduleTodos, setModuleTodos] = useState({ deposit: false, exchange: false, withdrawal: false });
 
   useEffect(() => {
     const fetchRates = async () => {
@@ -54,7 +186,10 @@ const Home = () => {
     fetchWallet();
 
     // 拉取待办
-    const DONE_STATUSES = ['approved', 'cancelled'];
+    // 各模块的"已完成"状态：不在这些状态里的就算待办
+    const DONE_EXCHANGE = ['approved'];
+    const DONE_DEPOSIT = ['approved'];
+    const DONE_WITHDRAWAL = ['completed', 'cancelled'];
     const fetchTodo = async () => {
       const [exRes, depRes, wdRes] = await Promise.allSettled([
         exchange.list({ page: 1, pageSize: 100 }),
@@ -63,17 +198,16 @@ const Home = () => {
       ]);
 
       const todos = [];
+      const hasExchange = exRes.status === 'fulfilled' && exRes.value.data?.list?.some(item => !DONE_EXCHANGE.includes(item.status));
+      const hasDeposit = depRes.status === 'fulfilled' && depRes.value.data?.list?.some(item => !DONE_DEPOSIT.includes(item.status));
+      const hasWithdrawal = wdRes.status === 'fulfilled' && wdRes.value.data?.list?.some(item => !DONE_WITHDRAWAL.includes(item.status));
 
-      if (exRes.status === 'fulfilled' && exRes.value.data?.list?.some(item => !DONE_STATUSES.includes(item.status))) {
-        todos.push({ type: 'exchange', label: t('home.todoExchange'), path: '/client/exchange' });
-      }
-      if (depRes.status === 'fulfilled' && depRes.value.data?.list?.some(item => !DONE_STATUSES.includes(item.status))) {
-        todos.push({ type: 'deposit', label: t('home.todoDeposit'), path: '/client/deposit' });
-      }
-      if (wdRes.status === 'fulfilled' && wdRes.value.data?.list?.some(item => !DONE_STATUSES.includes(item.status))) {
-        todos.push({ type: 'withdrawal', label: t('home.todoWithdrawal'), path: '/client/withdrawal' });
-      }
+      if (hasExchange) todos.push({ type: 'exchange', label: t('home.todoExchange'), path: '/client/exchange' });
+      if (hasDeposit) todos.push({ type: 'deposit', label: t('home.todoDeposit'), path: '/client/deposit' });
+      if (hasWithdrawal) todos.push({ type: 'withdrawal', label: t('home.todoWithdrawal'), path: '/client/withdrawal' });
+
       setTodoList(todos);
+      setModuleTodos({ deposit: hasDeposit, exchange: hasExchange, withdrawal: hasWithdrawal });
     };
     fetchTodo();
 
@@ -376,8 +510,8 @@ const Home = () => {
                     <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #1890ff, #69c0ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
                       <RiseOutlined style={{ fontSize: 18, color: '#fff' }} />
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e', marginBottom: 4 }}>{t('home.starEnterprise')}</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af' }}>{t('home.collectionRecordsSub')}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e', marginBottom: 4 }}>{t('home.enterpriseIntro')}</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>{t('home.enterpriseIntroSub')}</div>
                   </div>
                 </Col>
 
@@ -477,6 +611,120 @@ const Home = () => {
             </div>
           </div>
           </div>
+
+      {/* 操作指引（5 步骤条 + 内容区，跨整个宽度） */}
+      <div style={{ background: '#fff', borderRadius: 24, padding: '32px 36px', boxShadow: '0 2px 16px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1a2e', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#722ed1' }} />
+          {t('home.guide')}
+        </div>
+
+        {/* 步骤条 */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 32, padding: '0 12px' }}>
+          <StepNode num={1} icon={<FileTextOutlined />} title={t('home.guideNode1Title')} subtitle={t('home.guideNode1Sub')} color="#667eea" />
+          <StepNode num={2} icon={<UploadOutlined />} title={t('home.guideNode2Title')} subtitle={t('home.guideNode2Sub')} color="#52c41a" />
+          <StepNode num={3} icon={<SwapOutlined />} title={t('home.guideNode3Title')} subtitle={t('home.guideNode3Sub')} color="#fa8c16" />
+          <StepNode num={4} icon={<UserSwitchOutlined />} title={t('home.guideNode4Title')} subtitle={t('home.guideNode4Sub')} color="#722ed1" isLast={false} />
+          <StepNode num={5} icon={<RiseOutlined />} title={t('home.guideNode5Title')} subtitle={t('home.guideNode5Sub')} color="#eb2f96" isLast />
+        </div>
+
+        {/* 步骤内容区 */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
+          {/* 通用样式：描述区（垂直居中）+ 底部链接按钮组 */}
+          {[
+            {
+              desc: t('home.guideDesc1'),
+              btns: (
+                <a
+                  href="/代收付协议模板.docx"
+                  download="代收付协议模板.docx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    color: '#667eea',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <FileTextOutlined /> {t('home.guideBtn1')}
+                </a>
+              ),
+            },
+            {
+              desc: t('home.guideDesc2'),
+              status: moduleTodos.deposit,
+              btns: (
+                <>
+                  <LinkBtn onClick={() => navigate('/client/deposit/apply')}>{t('home.guideApply')}</LinkBtn>
+                  <LinkBtn onClick={() => navigate('/client/deposit')}>{t('home.guideProcess')}</LinkBtn>
+                </>
+              ),
+            },
+            {
+              desc: t('home.guideDesc3'),
+              status: moduleTodos.exchange,
+              btns: (
+                <>
+                  <LinkBtn onClick={() => navigate('/client/exchange/apply')}>{t('home.guideApply')}</LinkBtn>
+                  <LinkBtn onClick={() => navigate('/client/exchange')}>{t('home.guideProcess')}</LinkBtn>
+                </>
+              ),
+            },
+            {
+              desc: t('home.guideDesc4'),
+              btns: (
+                <>
+                  <LinkBtn onClick={() => navigate('/client/receivable/apply')}>{t('home.guideAdd')}</LinkBtn>
+                  <LinkBtn onClick={() => navigate('/client/receivable')}>{t('home.guideProcess')}</LinkBtn>
+                </>
+              ),
+            },
+            {
+              desc: t('home.guideDesc5'),
+              status: moduleTodos.withdrawal,
+              btns: (
+                <>
+                  <LinkBtn onClick={() => navigate('/client/withdrawal/apply')}>{t('home.guideApply')}</LinkBtn>
+                  <LinkBtn onClick={() => navigate('/client/withdrawal')}>{t('home.guideProcess')}</LinkBtn>
+                </>
+              ),
+            },
+          ].map((item, i) => (
+            <div key={i} style={{ ...guideCardStyle, alignItems: 'center', textAlign: 'center' }}>
+              {/* 描述区：自动撑满中间 */}
+              <div style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                width: '100%',
+              }}>
+                <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>{item.desc}</div>
+                {item.status !== undefined && <TodoStatus hasTodo={item.status} t={t} />}
+              </div>
+              {/* 底部链接按钮组：固定底部 */}
+              <div style={{
+                display: 'flex',
+                gap: 12,
+                marginTop: 14,
+                paddingTop: 12,
+                borderTop: '1px dashed #e8e8f0',
+                width: '100%',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}>
+                {item.btns}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 底部品牌定位 */}
       <div style={{ background: '#fff', borderRadius: 24, padding: '40px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', boxShadow: '0 2px 16px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>

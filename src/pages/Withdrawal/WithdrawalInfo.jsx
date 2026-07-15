@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'umi';
 import { Button, Spin, Result, Tag, Card, message } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { withdrawal, payee } from '@/services/api';
+import { withdrawal } from '@/services/api';
 import moment from 'moment';
 import { useI18n } from '@/locales/I18nContext';
 
-const REGION_MAP = { mainland: 'withdrawalInfo.mainland', hk_mo: 'withdrawalInfo.hkMo' };
+const REGION_MAP = { mainland: 'withdrawalInfo.mainland', hk: 'withdrawalInfo.hk' };
 
 const FileCard = ({ url, name }) => {
   if (!url) return null;
@@ -53,32 +53,18 @@ const WithdrawalInfo = () => {
   const { t } = useI18n();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [payeeDetail, setPayeeDetail] = useState(null);
 
   useEffect(() => { fetchDetail(); }, [withdrawalId]);
 
   const fetchDetail = async () => {
     setLoading(true);
-    setPayeeDetail(null);
     try {
       const res = await withdrawal.detail(withdrawalId);
-      if (res.code === 0) {
-        setDetail(res.data);
-        if (res.data.payeeId) fetchPayee(res.data.payeeId);
-      }
+      if (res.code === 0) setDetail(res.data);
     } catch (e) {
       // 错误已由拦截器统一处理
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchPayee = async (payeeId) => {
-    try {
-      const res = await payee.detail(payeeId);
-      if (res.code === 0) setPayeeDetail(res.data);
-    } catch (e) {
-      // ignore
     }
   };
 
@@ -100,6 +86,8 @@ const WithdrawalInfo = () => {
 
   const statusMap = {
     pending_review: { text: 'withdrawalInfo.status_pending_review', color: 'orange' },
+    processed: { text: 'withdrawalInfo.status_processed', color: 'blue' },
+    confirmed: { text: 'withdrawalInfo.status_confirmed', color: 'purple' },
     uploaded: { text: 'withdrawalInfo.status_uploaded', color: 'blue' },
     completed: { text: 'withdrawalInfo.status_completed', color: 'green' },
   };
@@ -203,68 +191,77 @@ const WithdrawalInfo = () => {
           </div>
 
           {/* 收款方信息 */}
-          {payeeDetail && (
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#667eea', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 3, height: 14, background: '#667eea', borderRadius: 2 }} />
-                {t('withdrawalInfo.payeeInfo')}
-              </div>
-              <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '20px 24px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px' }}>
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeId')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#667eea' }}>{payeeDetail.payeeId}</div>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#667eea', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 3, height: 14, background: '#667eea', borderRadius: 2 }} />
+              {t('withdrawalInfo.payeeInfo')}
+            </div>
+            <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '20px 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px' }}>
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.subjectType')}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
+                    {detail.payeeSnapType === 'personal' ? t('withdrawalInfo.personal') : detail.payeeSnapType === 'enterprise' ? t('withdrawalInfo.enterprise') : '-'}
                   </div>
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeType')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
-                      {payeeDetail.type === 'personal' ? t('withdrawalInfo.personal') : payeeDetail.type === 'enterprise' ? t('withdrawalInfo.enterprise') : '-'}
+                </div>
+                {detail.payeeSnapType === 'personal' ? (
+                  <>
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeName')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapName || '-'}</div>
                     </div>
-                  </div>
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeName')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
-                      {payeeDetail.type === 'personal' ? payeeDetail.name : payeeDetail.companyName || '-'}
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeePhone')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapPhone || '-'}</div>
                     </div>
-                  </div>
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeePhone')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.phone || '-'}</div>
-                  </div>
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBankAccount')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
-                      {payeeDetail.type === 'personal' ? (payeeDetail.bankCard || '-') : (payeeDetail.bankAccount || '-')}
-                    </div>
-                  </div>
-                  <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBank')}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
-                      {payeeDetail.type === 'personal' ? payeeDetail.bankBranch : payeeDetail.bankName || '-'}
-                    </div>
-                  </div>
-                  {payeeDetail.type === 'personal' && payeeDetail.idCard && (
                     <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                       <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.idCard')}</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.idCard}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapIdCard || '-'}</div>
                     </div>
-                  )}
-                  {payeeDetail.type === 'enterprise' && payeeDetail.swiftCode && (
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBankAccount')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapBankCard || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBank')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapBankBranch || '-'}</div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeName')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapCompanyName || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeePhone')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapPhone || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBankAccount')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapBankAccount || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.payeeBank')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapBankName || '-'}</div>
+                    </div>
+                    <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.bankAddress')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapBankAddress || '-'}</div>
+                    </div>
                     <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                       <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.swiftCode')}</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.swiftCode}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapSwiftCode || '-'}</div>
                     </div>
-                  )}
-                  {payeeDetail.type === 'enterprise' && payeeDetail.bankCode && (
                     <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                       <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.bankCode')}</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{payeeDetail.bankCode}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail.payeeSnapBankCode || '-'}</div>
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
           {/* 水单凭证 */}
           {files.length > 0 && (

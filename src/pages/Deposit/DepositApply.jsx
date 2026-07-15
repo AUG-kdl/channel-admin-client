@@ -4,6 +4,7 @@ import { Form, Select, Input, Button, message, Card, Upload, Alert } from 'antd'
 import { ArrowLeftOutlined, InboxOutlined } from '@ant-design/icons';
 import { deposit, upload } from '@/services/api';
 import { useI18n } from '../../locales/I18nContext';
+import DOCX from './template.docx';
 
 const { Dragger } = Upload;
 
@@ -15,6 +16,12 @@ const DepositApply = () => {
   const [submitting, setSubmitting] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [tradeFileList, setTradeFileList] = useState([]);
+  const [tradeUploading, setTradeUploading] = useState(false);
+  const [agreementFileList, setAgreementFileList] = useState([]);
+  const [agreementUploading, setAgreementUploading] = useState(false);
+  const [logisticsFileList, setLogisticsFileList] = useState([]);
+  const [logisticsUploading, setLogisticsUploading] = useState(false);
 
   // 重新申请：被拒记录（从列表页带过来）
   const reapplyRecord = location.state?.fromRejected;
@@ -88,8 +95,38 @@ const DepositApply = () => {
     setFileList(prev => prev.filter(f => f.uid !== file.uid));
   };
 
+  const handleUploadSingle = async (file, setFileList, setUploading) => {
+    setUploading(true);
+    try {
+      const res = await upload([file]);
+      const data = Array.isArray(res.data) ? res.data : [res.data];
+      const newFile = {
+        uid: file.uid,
+        name: file.name,
+        status: 'done',
+        url: data[0]?.url,
+        ossKey: data[0]?.ossKey,
+        originalName: data[0]?.originalName || file.name,
+      };
+      setFileList(prev => [...prev, newFile]);
+      return newFile;
+    } catch {
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveSingle = (file, setFileList) => {
+    setFileList(prev => prev.filter(f => f.uid !== file.uid));
+  };
+
+  const handleRemoveSingleByUid = (uid, setFileList) => {
+    setFileList(prev => prev.filter(f => f.uid !== uid));
+  };
+
   const handleSubmit = async (values) => {
-    if (uploading) {
+    if (uploading || tradeUploading || agreementUploading || logisticsUploading) {
       message.warning(t('depositApply.uploadPending'));
       return;
     }
@@ -98,11 +135,26 @@ const DepositApply = () => {
       message.error(t('depositApply.uploadProofRequired'));
       return;
     }
+    const validTrade = tradeFileList.filter(f => f.status === 'done' && f.url);
+    const validAgreement = agreementFileList.filter(f => f.status === 'done' && f.url);
+    const validLogistics = logisticsFileList.filter(f => f.status === 'done' && f.url);
+    if (!validAgreement.length) { message.error(t('depositApply.uploadAgreementRequired')); return; }
     const user = JSON.parse(localStorage.getItem('clientUser') || '{}');
     setSubmitting(true);
     try {
       const images = validFiles.map(f => ({ url: f.url, name: f.originalName || f.name }));
-      await deposit.create({ ...values, images, channel: user.channel, salesToken: user.salesToken });
+      const tradeContract = validTrade.map(f => ({ url: f.url, name: f.originalName || f.name }));
+      const agreementFile = validAgreement.map(f => ({ url: f.url, name: f.originalName || f.name }));
+      const logisticsFile = validLogistics.map(f => ({ url: f.url, name: f.originalName || f.name }));
+      await deposit.create({
+        ...values,
+        images,
+        tradeContract,
+        agreementFile,
+        logisticsFile,
+        channel: user.channel,
+        salesToken: user.salesToken,
+      });
       message.success(t('depositApply.success'));
       navigate('/client/deposit');
     } catch (e) {
@@ -143,7 +195,7 @@ const DepositApply = () => {
                 showIcon
                 message={
                   <span>
-                    <span style={{ fontWeight: 600 }}>审核备注：</span>
+                    <span style={{ fontWeight: 600 }}>{t('depositApply.auditRemark')}</span>
                     <span>{reapplyRecord.reason}</span>
                   </span>
                 }
@@ -161,7 +213,7 @@ const DepositApply = () => {
 
             <Form.Item label={t('depositApply.amount')} name="fromAmount" rules={[
               { required: true, message: t('depositApply.amountInput') },
-              { pattern: /^[1-9]\d*(\.\d+)?$/, message: '请输入正数金额' },
+              { pattern: /^[1-9]\d*(\.\d+)?$/, message: t('depositApply.amountPositive') },
             ]}>
               <Input size="large" type="text" inputMode="decimal" placeholder={t('depositApply.amountInput')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
@@ -182,10 +234,7 @@ const DepositApply = () => {
               <Input size="large" placeholder={t('depositApply.bankAddress')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
-            <Form.Item label={t('depositApply.notes')} name="notes">
-              <Input.TextArea size="large" rows={2} placeholder={t('depositApply.notes')} allowClear style={{ borderRadius: 8 }} />
-            </Form.Item>
-
+            {/* 入金凭证（水单）—— 必填 */}
             <Form.Item label={<span><span style={{ color: '#f5222d' }}>*</span> {t('depositApply.proofLabel')}</span>}>
               <Dragger
                 multiple
@@ -208,6 +257,55 @@ const DepositApply = () => {
                   {t('depositApply.proofUploadHint')}
                 </p>
               </Dragger>
+            </Form.Item>
+
+            {/* 代收付协议 —— 必填，带下载模板 */}
+            <Form.Item label={<span><span style={{ color: '#f5222d' }}>*</span> {t('depositApply.tradeAgreement')}</span>}>
+              <Dragger
+                accept=".pdf,.xlsx,.xls,.doc,.docx"
+                beforeUpload={file => { handleUploadSingle(file, setAgreementFileList, setAgreementUploading); return false; }}
+                fileList={agreementFileList}
+                onRemove={file => handleRemoveSingleByUid(file.uid, setAgreementFileList)}
+              >
+                <p className="ant-upload-drag-icon"><InboxOutlined style={{ color: '#667eea' }} /></p>
+                <p className="ant-upload-text">{t('depositApply.uploadHint')}</p>
+                <p className="ant-upload-hint" style={{ fontSize: 12, color: '#999' }}>{t('depositApply.uploadHintAgreement')}</p>
+              </Dragger>
+              <div style={{ marginTop: 8 }}>
+                <a href={DOCX} download="代收付协议模板.docx" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#1677ff' }}>{t('depositApply.downloadAgreementTemplate')}</a>
+              </div>
+            </Form.Item>
+
+            {/* 贸易合同 —— 非必填 */}
+            <Form.Item label={t('depositApply.tradeContract')}>
+              <Dragger
+                accept=".pdf,.xlsx,.xls,.doc,.docx"
+                beforeUpload={file => { handleUploadSingle(file, setTradeFileList, setTradeUploading); return false; }}
+                fileList={tradeFileList}
+                onRemove={file => handleRemoveSingleByUid(file.uid, setTradeFileList)}
+              >
+                <p className="ant-upload-drag-icon"><InboxOutlined style={{ color: '#667eea' }} /></p>
+                <p className="ant-upload-text">{t('depositApply.uploadHint')}</p>
+                <p className="ant-upload-hint" style={{ fontSize: 12, color: '#999' }}>{t('depositApply.uploadHintAgreement')}</p>
+              </Dragger>
+            </Form.Item>
+
+            {/* 物流信息 —— 非必填 */}
+            <Form.Item label={t('depositApply.logisticsInfo')}>
+              <Dragger
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                beforeUpload={file => { handleUploadSingle(file, setLogisticsFileList, setLogisticsUploading); return false; }}
+                fileList={logisticsFileList}
+                onRemove={file => handleRemoveSingleByUid(file.uid, setLogisticsFileList)}
+              >
+                <p className="ant-upload-drag-icon"><InboxOutlined style={{ color: '#667eea' }} /></p>
+                <p className="ant-upload-text">{t('depositApply.uploadHint')}</p>
+                <p className="ant-upload-hint" style={{ fontSize: 12, color: '#999' }}>{t('depositApply.uploadHintLogistics')}</p>
+              </Dragger>
+            </Form.Item>
+
+            <Form.Item label={t('depositApply.notes')} name="notes">
+              <Input.TextArea size="large" rows={2} placeholder={t('depositApply.notes')} allowClear style={{ borderRadius: 8 }} />
             </Form.Item>
 
             <div style={{ display: 'flex', gap: 16, marginTop: 24, justifyContent: 'center' }}>

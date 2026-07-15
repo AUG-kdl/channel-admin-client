@@ -67,7 +67,7 @@ const DepositDetail = () => {
     <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(160deg, #f5f7fa 0%, #eceef5 100%)', padding: '24px 32px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
-        {/* 顶部导航 */}
+        {/* Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16, gap: 8 }}>
           <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/client/deposit')} style={{ color: '#667eea', fontSize: 14 }}>
             {t('depositDetail.back')}
@@ -84,9 +84,9 @@ const DepositDetail = () => {
               <Card>
                 <Section title={t('depositDetail.basicInfo')}>
                   <FieldGrid>
-                    <FieldItem label={t('depositDetail.orderNo')}>入金{detail.orderNo || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.orderNo')}>{detail.orderNo || dash}</FieldItem>
                     <FieldItem label={t('depositDetail.amount')}>{detail.fromAmount || dash}</FieldItem>
-                    <FieldItem label={t('depositDetail.currency')}>入金币种：{detail.fromCurrency || dash}</FieldItem>
+                    <FieldItem label={t('depositDetail.currency')}>{detail.fromCurrency || dash}</FieldItem>
                     <FieldItem label={t('depositDetail.bankCard')}>{detail.bankCard || dash}</FieldItem>
                     <FieldItem label={t('depositDetail.bankBranch')}>{detail.bankBranch || dash}</FieldItem>
                     <FieldItem label={t('depositDetail.bankAddress')}>{detail.bankAddress || dash}</FieldItem>
@@ -114,7 +114,7 @@ const DepositDetail = () => {
                   </FieldGrid>
                 </Section>
 
-                {/* 入金凭证 */}
+                {/* Deposit Proof */}
                 <Section title={t('depositDetail.proof')}>
                   {(() => {
                     try {
@@ -127,7 +127,16 @@ const DepositDetail = () => {
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                           {imgs.map((img, i) => {
                             const url = typeof img === 'string' ? img : img.url;
-                            return <Image key={i} src={url} width={90} height={90} style={{ objectFit: 'cover', borderRadius: 8, border: '1px solid #eee' }} />;
+                            const name = typeof img === 'object' ? (img.name || url.split('/').pop() || `凭证${i + 1}`) : url.split('/').pop();
+                            return (
+                              <div key={i} style={{ textAlign: 'center' }}>
+                                <Image src={url} width={90} height={90} style={{ objectFit: 'cover', borderRadius: 8, border: '1px solid #eee', display: 'block' }} />
+                                <a href={url} download={name} target="_blank" rel="noopener noreferrer"
+                                  style={{ display: 'block', marginTop: 4, fontSize: 11, color: '#1677ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 90 }}>
+                                  {name}
+                                </a>
+                              </div>
+                            );
                           })}
                         </div>
                       );
@@ -136,6 +145,58 @@ const DepositDetail = () => {
                     }
                   })()}
                 </Section>
+
+                {/* Attached Files */}
+                {(() => {
+                  const parseJson = (val) => {
+                    if (!val) return [];
+                    if (typeof val === 'string') {
+                      try { return JSON.parse(val); } catch { return []; }
+                    }
+                    return Array.isArray(val) ? val : [];
+                  };
+
+                  const renderFiles = (field, label) => {
+                    const list = parseJson(field);
+                    if (!list.length) return null;
+                    return (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>{label}</div>
+                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                          {list.map((item, i) => {
+                            const url = typeof item === 'string' ? item : item.url;
+                            const name = typeof item === 'object' ? (item.name || url.split('/').pop() || `${t('depositDetail.file') || '文件'}${i + 1}`) : url.split('/').pop();
+                            const isImg = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
+                            return (
+                              <div key={i} style={{ textAlign: 'center' }}>
+                                {isImg
+                                  ? <Image src={url} width={90} height={90} style={{ objectFit: 'cover', borderRadius: 8, border: '1px solid #eee', display: 'block' }} />
+                                  : <div style={{ width: 90, height: 90, borderRadius: 8, border: '1px solid #eee', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/pdf-icon.png" alt="" style={{ width: 40, height: 40 }} /></div>
+                                }
+                                <a href={url} download={name} target="_blank" rel="noopener noreferrer"
+                                  style={{ display: 'block', marginTop: 4, fontSize: 11, color: '#1677ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 90 }}>
+                                  {name}
+                                </a>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  };
+
+                  const hasTrade = parseJson(detail.tradeContract).length > 0;
+                  const hasAgree = parseJson(detail.agreementFile).length > 0;
+                  const hasLogistics = parseJson(detail.logisticsFile).length > 0;
+
+                  if (!hasTrade && !hasAgree && !hasLogistics) return null;
+
+                  return (
+                    <Section title={t('depositDetail.proof')}>
+                      <>{renderFiles(detail.tradeContract, t('depositApply.tradeContract'))}{renderFiles(detail.agreementFile, t('depositApply.tradeAgreement'))}{renderFiles(detail.logisticsFile, t('depositApply.logisticsInfo'))}</>
+                    </Section>
+                  );
+                })()}
 
                 <div style={{ textAlign: 'center', marginTop: 8 }}>
                   <Button

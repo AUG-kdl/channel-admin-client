@@ -146,7 +146,10 @@ const Exchange = () => {
                 pageSize,
                 total,
                 onChange: (p, ps) => { setPage(p); setPageSize(ps); },
-                showSizeChanger: false,
+                showSizeChanger: true,
+                pageSizeOptions: ['20', '50', '100'],
+                showQuickJumper: true,
+                showTotal: (t) => `共 ${t} 条`,
               }}
             />
           )}
