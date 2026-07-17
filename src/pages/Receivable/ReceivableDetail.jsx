@@ -12,22 +12,28 @@ const STATUS_MAP = (t) => ({
   rejected:       { text: t('payeeInfo.status_rejected'), color: '#f5222d', bg: '#fff1f0' },
 });
 
-const InfoRow = ({ label, value }) => (
-  <div style={{ width: '50%', padding: '14px 0', display: 'flex', alignItems: 'flex-start', boxSizing: 'border-box', borderBottom: '1px solid #f5f5f5' }}>
-    <div style={{ width: 100, fontSize: 13, color: '#9ca3af', flexShrink: 0 }}>{label}</div>
-    <div style={{ fontSize: 13, color: '#333', fontWeight: 500, wordBreak: 'break-all' }}>{value || '-'}</div>
-  </div>
-);
-
-const InfoGrid = ({ children }) => (
-  <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '1px solid #f0f0f0' }}>
+const Section = ({ title, children }) => (
+  <div style={{ marginBottom: 40 }}>
+    <div style={{ fontSize: 12, color: '#667eea', fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{title}</div>
     {children}
   </div>
 );
 
-const Card = ({ title, children }) => (
-  <div style={{ background: '#fff', borderRadius: 16, padding: '28px 32px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)', marginBottom: 16 }}>
-    {title && <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e', marginBottom: 20 }}>{title}</div>}
+const FieldGrid = ({ children }) => (
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 32px' }}>
+    {children}
+  </div>
+);
+
+const FieldItem = ({ label, children, span }) => (
+  <div style={{ gridColumn: span ? `span ${span}` : undefined, padding: '14px 0', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'baseline', gap: 8 }}>
+    <span style={{ color: '#9ca3af', fontSize: 13, flexShrink: 0 }}>{label}</span>
+    <span style={{ fontSize: 14, fontWeight: 500, color: '#333', wordBreak: 'break-all', flex: 1 }}>{children}</span>
+  </div>
+);
+
+const Card = ({ children }) => (
+  <div style={{ background: '#fff', borderRadius: 16, padding: '32px 36px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)', marginBottom: 16 }}>
     {children}
   </div>
 );
@@ -78,9 +84,8 @@ const ReceivableDetail = () => {
           <Result status="error" title={t('payeeInfo.notFound')} subTitle={t('payeeInfo.notFoundDesc')} />
         ) : (
           <>
-            {/* 概览卡片 */}
             <Card>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
                 <div>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('payeeInfo.payeeId')}</div>
                   <div style={{ fontFamily: 'monospace', fontSize: 20, fontWeight: 700, color: '#1a1a2e' }}>{detail.payeeId}</div>
@@ -98,43 +103,42 @@ const ReceivableDetail = () => {
               </div>
             </Card>
 
-            {/* 基本信息 */}
-            <Card title={t('payeeInfo.basicInfo')}>
-              <InfoGrid>
-                {detail.type === 'personal' ? (
-                  <>
-                    <InfoRow label={t('payeeInfo.name')} value={detail.name} />
-                    <InfoRow label={t('payeeInfo.phone')} value={detail.phone} />
-                    <InfoRow label={t('payeeInfo.idCard')} value={detail.idCard} />
-                    <InfoRow label={t('payeeInfo.bankCard')} value={detail.bankCard} />
-                    <InfoRow label={t('payeeInfo.bankBranch')} value={detail.bankBranch} />
-                  </>
-                ) : (
-                  <>
-                    <InfoRow label={t('payeeInfo.companyName')} value={detail.companyName} />
-                    <InfoRow label={t('payeeInfo.phone')} value={detail.phone} />
-                    <InfoRow label={t('payeeInfo.bankAccount')} value={detail.bankAccount} />
-                    <InfoRow label={t('payeeInfo.bankName')} value={detail.bankName} />
-                    <InfoRow label={t('payeeInfo.bankAddress')} value={detail.bankAddress} />
-                    <InfoRow label={t('payeeInfo.swiftCode')} value={detail.swiftCode} />
-                    <InfoRow label={t('payeeInfo.bankCode')} value={detail.bankCode} />
-                  </>
-                )}
-                {detail.notes && <InfoRow label={t('payeeInfo.notes')} value={detail.notes} />}
-                {detail.rejectReason && <InfoRow label={t('payeeInfo.reason')} value={detail.rejectReason} />}
-              </InfoGrid>
+            <Card>
+              <Section title={t('payeeInfo.basicInfo')}>
+                <FieldGrid>
+                  {detail.type === 'personal' ? (
+                    <>
+                      <FieldItem label={t('payeeInfo.name')}>{detail.name || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.phone')}>{detail.phone || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.idCard')}>{detail.idCard || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.bankCard')}>{detail.bankCard || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.bankBranch')}>{detail.bankBranch || '-'}</FieldItem>
+                    </>
+                  ) : (
+                    <>
+                      <FieldItem label={t('payeeInfo.companyName')}>{detail.companyName || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.phone')}>{detail.phone || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.bankAccount')}>{detail.bankAccount || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.bankName')}>{detail.bankName || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.bankAddress')}>{detail.bankAddress || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.swiftCode')}>{detail.swiftCode || '-'}</FieldItem>
+                      <FieldItem label={t('payeeInfo.bankCode')}>{detail.bankCode || '-'}</FieldItem>
+                    </>
+                  )}
+                  <FieldItem label={t('payeeInfo.notes')}>{detail.notes || '-'}</FieldItem>
+                  {detail.rejectReason && <FieldItem label={t('payeeInfo.reason')}>{detail.rejectReason}</FieldItem>}
+                </FieldGrid>
+              </Section>
+
+              {detail.rejectReason && (
+                <Section title={t('payeeInfo.rejectReason')}>
+                  <div style={{ background: '#fff1f0', borderRadius: 8, padding: '14px 18px', color: '#f5222d', fontSize: 14, border: '1px solid #ffccc7' }}>
+                    {detail.rejectReason}
+                  </div>
+                </Section>
+              )}
             </Card>
 
-            {/* 拒绝原因 */}
-            {detail.rejectReason && (
-              <Card title={t('payeeInfo.rejectReason')}>
-                <div style={{ background: '#fff1f0', borderRadius: 8, padding: '14px 18px', color: '#f5222d', fontSize: 14, border: '1px solid #ffccc7' }}>
-                  {detail.rejectReason}
-                </div>
-              </Card>
-            )}
-
-            {/* 底部按钮 */}
             <div style={{ textAlign: 'center', marginTop: 8 }}>
               <Button onClick={() => navigate('/client/receivable')} style={{ height: 40, borderRadius: 8, width: 140, fontSize: 14 }}>
                 {t('payeeInfo.backToList')}

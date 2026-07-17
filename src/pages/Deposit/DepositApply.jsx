@@ -46,6 +46,27 @@ const DepositApply = () => {
           return { uid: `existing-${i}`, name, status: 'done', url };
         }));
       }
+      if (Array.isArray(rejected.tradeContract)) {
+        setTradeFileList(rejected.tradeContract.map((img, i) => {
+          const url = typeof img === 'string' ? img : img.url;
+          const name = typeof img === 'object' && img.name ? img.name : `${t('depositApply.tradeContract')} ${i + 1}`;
+          return { uid: `existing-trade-${i}`, name, status: 'done', url };
+        }));
+      }
+      if (Array.isArray(rejected.agreementFile)) {
+        setAgreementFileList(rejected.agreementFile.map((img, i) => {
+          const url = typeof img === 'string' ? img : img.url;
+          const name = typeof img === 'object' && img.name ? img.name : `${t('depositApply.tradeAgreement')} ${i + 1}`;
+          return { uid: `existing-agreement-${i}`, name, status: 'done', url };
+        }));
+      }
+      if (Array.isArray(rejected.logisticsFile)) {
+        setLogisticsFileList(rejected.logisticsFile.map((img, i) => {
+          const url = typeof img === 'string' ? img : img.url;
+          const name = typeof img === 'object' && img.name ? img.name : `${t('depositApply.logistics')} ${i + 1}`;
+          return { uid: `existing-logistics-${i}`, name, status: 'done', url };
+        }));
+      }
     }
   }, [location.state]);
 
@@ -140,6 +161,7 @@ const DepositApply = () => {
     const validLogistics = logisticsFileList.filter(f => f.status === 'done' && f.url);
     if (!validAgreement.length) { message.error(t('depositApply.uploadAgreementRequired')); return; }
     const user = JSON.parse(localStorage.getItem('clientUser') || '{}');
+    const reapplyOrderNo = location.state?.fromRejected?.orderNo;
     setSubmitting(true);
     try {
       const images = validFiles.map(f => ({ url: f.url, name: f.originalName || f.name }));
@@ -154,6 +176,7 @@ const DepositApply = () => {
         logisticsFile,
         channel: user.channel,
         salesToken: user.salesToken,
+        ...(reapplyOrderNo && { orderNo: reapplyOrderNo }),
       });
       message.success(t('depositApply.success'));
       navigate('/client/deposit');

@@ -83,7 +83,7 @@ const ExchangeInfo = () => {
             </div>
             {statusKey && (
               <Tag color={statusColor} style={{ fontSize: 14, padding: '4px 12px', borderRadius: 6 }}>
-                {t(`exchangeInfo.${statusKey}`)}
+                {t(`exchangeList.${statusKey}`)}
               </Tag>
             )}
           </div>
@@ -103,7 +103,7 @@ const ExchangeInfo = () => {
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('exchangeInfo.status')}</div>
                   <Tag color={statusColor} style={{ fontSize: 12, padding: '2px 10px', borderRadius: 6 }}>
-                    {t(`exchangeInfo.${statusKey}`)}
+                    {t(`exchangeList.${statusKey}`)}
                   </Tag>
                 </div>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>

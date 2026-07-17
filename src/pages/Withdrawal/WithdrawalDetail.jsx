@@ -290,37 +290,39 @@ const WithdrawalDetail = () => {
         footer={null}
         closable={false}
         centered
-        width={360}
+        width={480}
         styles={{ body: { padding: 0, overflow: 'hidden' } }}
       >
-        <div style={{ textAlign: 'center', padding: '32px 24px 24px' }}>
+        <div style={{ textAlign: 'center', padding: '24px 28px 20px' }}>
           <div style={{
-            width: 64, height: 64, borderRadius: '50%',
+            width: 56, height: 56, borderRadius: '50%',
             background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
             border: '2px solid #c4b5fd',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 20px',
+            margin: '0 auto 14px',
           }}>
-            <CheckCircleOutlined style={{ fontSize: 28, color: '#7c3aed' }} />
+            <CheckCircleOutlined style={{ fontSize: 24, color: '#7c3aed' }} />
           </div>
-          <div style={{ fontSize: 17, fontWeight: 600, color: '#1a1a2e', marginBottom: 8 }}>{t('withdrawalDetail.confirmTitle')}</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 28, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1a2e', marginBottom: 6 }}>{t('withdrawalDetail.confirmTitle')}</div>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.6 }}>
             {t('withdrawalDetail.confirmDesc')}
           </div>
-          <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.payee')}</div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: '#333', marginBottom: 8 }}>{detail?.payeeName}</div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.amount')}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#667eea', marginBottom: 8 }}>
-              {detail ? `${fmt(detail.amount)} ${detail.currency}` : ''}
+          <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '14px 18px', marginBottom: 24, textAlign: 'left', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.payee')}</div>
+              <div style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>{detail?.payeeName || '-'}</div>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.handlingFee')}</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#333', marginBottom: 8 }}>
-              {detail?.handlingFee != null ? `${fmt(detail.handlingFee)} ${detail.currency}` : '—'}
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.amount')}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#667eea' }}>{detail ? `${fmt(detail.amount)} ${detail.currency}` : '-'}</div>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.arrivalAmount')}</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#52c41a' }}>
-              {detail?.arrivalAmount != null ? `${fmt(detail.arrivalAmount)} ${detail.currency}` : '—'}
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.handlingFee')}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail?.handlingFee != null ? `${fmt(detail.handlingFee)} ${detail.currency}` : '—'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.arrivalAmount')}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#52c41a' }}>{detail?.arrivalAmount != null ? `${fmt(detail.arrivalAmount)} ${detail.currency}` : '—'}</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -361,37 +363,39 @@ const WithdrawalDetail = () => {
         footer={null}
         closable={false}
         centered
-        width={360}
+        width={480}
         styles={{ body: { padding: 0, overflow: 'hidden' } }}
       >
-        <div style={{ textAlign: 'center', padding: '32px 24px 24px' }}>
+        <div style={{ textAlign: 'center', padding: '24px 28px 20px' }}>
           <div style={{
-            width: 64, height: 64, borderRadius: '50%',
+            width: 56, height: 56, borderRadius: '50%',
             background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
             border: '2px solid #c4b5fd',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 20px',
+            margin: '0 auto 14px',
           }}>
-            <CheckCircleOutlined style={{ fontSize: 28, color: '#7c3aed' }} />
+            <CheckCircleOutlined style={{ fontSize: 24, color: '#7c3aed' }} />
           </div>
-          <div style={{ fontSize: 17, fontWeight: 600, color: '#1a1a2e', marginBottom: 8 }}>{t('withdrawalDetail.confirmProcessedTitle')}</div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 28, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1a2e', marginBottom: 6 }}>{t('withdrawalDetail.confirmProcessedTitle')}</div>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.6 }}>
             {t('withdrawalDetail.confirmProcessedDesc')}
           </div>
-          <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.payee')}</div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: '#333', marginBottom: 8 }}>{detail?.payeeName}</div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.amount')}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#667eea', marginBottom: 8 }}>
-              {detail ? `${fmt(detail.amount)} ${detail.currency}` : ''}
+          <div style={{ background: '#f8f9ff', borderRadius: 12, padding: '14px 18px', marginBottom: 24, textAlign: 'left', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.payee')}</div>
+              <div style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>{detail?.payeeName || '-'}</div>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.handlingFee')}</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#333', marginBottom: 8 }}>
-              {detail?.handlingFee != null ? `${fmt(detail.handlingFee)} ${detail.currency}` : '—'}
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.amount')}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#667eea' }}>{detail ? `${fmt(detail.amount)} ${detail.currency}` : '-'}</div>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.arrivalAmount')}</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#52c41a' }}>
-              {detail?.arrivalAmount != null ? `${fmt(detail.arrivalAmount)} ${detail.currency}` : '—'}
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.handlingFee')}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{detail?.handlingFee != null ? `${fmt(detail.handlingFee)} ${detail.currency}` : '—'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalDetail.arrivalAmount')}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#52c41a' }}>{detail?.arrivalAmount != null ? `${fmt(detail.arrivalAmount)} ${detail.currency}` : '—'}</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>

@@ -52,9 +52,9 @@ export default function ClientLayout() {
 
   const navItems = [
     { path: '/client/home', label: t('nav.home'), icon: <HomeOutlined /> },
+    { path: '/client/deposit', label: t('nav.deposit'), icon: <FundProjectionScreenOutlined /> },
     { path: '/client/exchange', label: t('nav.exchange'), icon: <SwapOutlined /> },
     { path: '/client/receivable', label: t('nav.receivable'), icon: <MoneyCollectOutlined /> },
-    { path: '/client/deposit', label: t('nav.deposit'), icon: <FundProjectionScreenOutlined /> },
     { path: '/client/withdrawal', label: t('nav.withdrawal'), icon: <SendOutlined /> },
     { path: '/client/about', label: t('nav.about'), icon: <BankOutlined /> },
   ];

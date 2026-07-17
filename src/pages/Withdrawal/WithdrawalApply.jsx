@@ -161,9 +161,9 @@ const WithdrawalApply = () => {
                         <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelPayeeId')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#667eea', fontFamily: 'monospace' }}>{selectedPayee.payeeId}</div></div>
                         <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankName')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankName || '-'}</div></div>
                         <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('withdrawalApply.labelBankAccount')}</div><div style={{ fontSize: 13, fontWeight: 600, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.bankAccount || '-'}</div></div>
-                        <div style={{ gridColumn: 'span 2' }}><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.bankAddress')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankAddress || '-'}</div></div>
                         <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.swiftCode')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.swiftCode || '-'}</div></div>
                         <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.bankCode')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333', fontFamily: 'monospace' }}>{selectedPayee.bankCode || '-'}</div></div>
+                        <div style={{ gridColumn: 'span 2' }}><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{t('payeeApply.bankAddress')}</div><div style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{selectedPayee.bankAddress || '-'}</div></div>
                       </>
                     )}
                   </div>

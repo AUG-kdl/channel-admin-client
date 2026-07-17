@@ -105,8 +105,8 @@ const Profile = () => {
               <UserOutlined style={{ fontSize: 28, color: '#fff' }} />
             </div>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#1a1a2e', marginBottom: 4 }}>{user.name || '用户'}</div>
-              <div style={{ fontSize: 13, color: '#9ca3af' }}>{user.company || '公司名称'}</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: '#1a1a2e', marginBottom: 4 }}>{user.name || t('profile.user')}</div>
+              <div style={{ fontSize: 13, color: '#9ca3af' }}>{user.company || t('profile.company')}</div>
             </div>
           </div>
           <div
@@ -119,17 +119,17 @@ const Profile = () => {
             }}
           >
             <EditOutlined />
-            编辑资料
+            {t('profile.editProfile')}
           </div>
         </div>
         <InfoGrid>
-          <InfoRow label="姓名" value={user.name} />
+          <InfoRow label={t('profile.name')} value={user.name} />
           <InfoRow label={t('profile.phone')} value={user.phone} />
           <InfoRow label={t('profile.email')} value={user.email} />
           <InfoRow label={t('profile.company')} value={user.company} />
           <InfoRow label={t('profile.registerTime')} value="2024-01-15" />
           {/* 认证状态 */}
-          <InfoRow label="认证状态" value={
+          <InfoRow label={t('profile.authStatus')} value={
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               {user.authStatus === 'approved' ? (
                 <><CheckCircleOutlined style={{ color: '#52c41a', fontSize: 14 }} /><span style={{ color: '#52c41a' }}>{t('nav.authApproved')}</span></>
@@ -175,15 +175,15 @@ const Profile = () => {
 
       {/* 专属销售 */}
       <div style={{ background: '#fff', borderRadius: 16, padding: '28px 32px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.04)' }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e', marginBottom: 16 }}>专属销售顾问</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e', marginBottom: 16 }}>{t('profile.dedicatedSales')}</div>
         {user.salesName || user.sales?.name ? (
           <InfoGrid>
-            <InfoRow label="销售姓名" value={user.salesName || user.sales?.name} />
-            <InfoRow label="销售电话" value={user.salesPhone || user.sales?.phone} />
-            <InfoRow label="销售邮箱" value={user.salesEmail || user.sales?.email} />
+            <InfoRow label={t('profile.salesName')} value={user.salesName || user.sales?.name} />
+            <InfoRow label={t('profile.salesPhone')} value={user.salesPhone || user.sales?.phone} />
+            <InfoRow label={t('profile.salesEmail')} value={user.salesEmail || user.sales?.email} />
           </InfoGrid>
         ) : (
-          <div style={{ color: '#9ca3af', fontSize: 13, padding: '8px 0' }}>暂无专属销售顾问，如有疑问请联系客服</div>
+          <div style={{ color: '#9ca3af', fontSize: 13, padding: '8px 0' }}>{t('profile.noSales')}</div>
         )}
       </div>
     </div>

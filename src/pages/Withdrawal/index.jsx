@@ -83,7 +83,7 @@ const Withdrawal = () => {
   };
 
   const columns = [
-    { title: t('withdrawalList.withdrawalOrderNo'), dataIndex: 'withdrawalId', key: 'withdrawalId', width: 160,
+    { title: t('withdrawalList.withdrawalOrderNo'), dataIndex: 'withdrawalId', key: 'withdrawalId', width: 180,
       render: (v) => (
         <span
           style={{ fontFamily: 'monospace', color: '#667eea', fontWeight: 500, cursor: 'pointer' }}
@@ -94,7 +94,7 @@ const Withdrawal = () => {
       ) },
     { title: t('withdrawalList.payeeName'), dataIndex: 'payeeName', key: 'payeeName', width: 200,
       render: (v, r) => v || r.payeeSnapName || r.payeeSnapCompanyName || '-' },
-    { title: '收款账号', key: 'payeeAccount', width: 180,
+    { title: t('withdrawalList.payeeAccount'), key: 'payeeAccount', width: 180,
       render: (_, r) => {
         const acc = r.payeeSnapBankAccount || r.payeeSnapBankCard || r.payeeAccount || '-';
         return <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#374151' }}>{acc}</span>;
@@ -177,8 +177,8 @@ const Withdrawal = () => {
             </Form.Item>
             <Form.Item label={t('withdrawalList.filterRegion')} name="region" style={{ marginBottom: 0 }}>
               <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
-                { value: 'mainland', label: t('withdrawalList.mainland') },
-                { value: 'hongkong', label: t('withdrawalList.hongkong') },
+                { value: 'mainland', label: t('withdrawalList.region_mainland') },
+                { value: 'hk', label: t('withdrawalList.region_hk') },
               ]} />
             </Form.Item>
             <Form.Item label={t('withdrawalList.currency')} name="currency" style={{ marginBottom: 12 }}>

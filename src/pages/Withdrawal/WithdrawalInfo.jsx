@@ -6,8 +6,6 @@ import { withdrawal } from '@/services/api';
 import moment from 'moment';
 import { useI18n } from '@/locales/I18nContext';
 
-const REGION_MAP = { mainland: 'withdrawalInfo.mainland', hk: 'withdrawalInfo.hk' };
-
 const FileCard = ({ url, name }) => {
   if (!url) return null;
   const ext = url.split('.').pop()?.toLowerCase().split('?')[0];
@@ -91,6 +89,10 @@ const WithdrawalInfo = () => {
     uploaded: { text: 'withdrawalInfo.status_uploaded', color: 'blue' },
     completed: { text: 'withdrawalInfo.status_completed', color: 'green' },
   };
+  const regionMap = {
+    mainland: t('withdrawalInfo.mainland'),
+    hk: t('withdrawalInfo.hk'),
+  };
   const s = statusMap[detail.status] || {};
   const files = Array.isArray(detail.proofFiles) ? detail.proofFiles : [];
 
@@ -144,7 +146,7 @@ const WithdrawalInfo = () => {
                 </div>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.region')}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{t(REGION_MAP[detail.region]) || detail.region}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>{regionMap[detail.region] || detail.region}</div>
                 </div>
                 <div style={{ padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{t('withdrawalInfo.currency')}</div>

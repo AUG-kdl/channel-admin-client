@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Form, Input, Button, message, Modal, Select } from 'antd';
+import { Form, Input, Button, Modal, Select } from 'antd';
 import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'umi';
 import { clientAuth } from '@/services/api';
@@ -28,8 +28,7 @@ const Login = () => {
 
       localStorage.setItem('clientToken', res.data.token);
       localStorage.setItem('clientUser', JSON.stringify(res.data.user));
-      message.success(t('login.loginSuccess'));
-
+      localStorage.setItem('justLoggedIn', '1'); // 通知首页弹欢迎
       if (res.data.user.isFirstLogin) {
         setFirstLoginModal(true);
       } else {
@@ -63,7 +62,7 @@ const Login = () => {
             value={locale}
             onChange={(v) => { localStorage.setItem(STORAGE_KEY, v); setLocale(v); }}
             size="small"
-            style={{ width: 120 }}
+            style={{ width: 140 }}
             options={LANGS.map(l => ({ value: l.value, label: (
               <span style={{ fontSize: 14 }}>
                 <span style={{ marginRight: 6 }}>{l.flag}</span>{l.label}

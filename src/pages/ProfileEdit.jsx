@@ -84,10 +84,10 @@ const ProfileEdit = () => {
           url,
           _uploaded: true,
         }] }));
-        message.success('上传成功');
+          message.success(t('profileEdit.uploadSuccess'));
       }
     } catch (e) {
-      message.error('上传失败：' + (e.message || '请重试'));
+      message.error(t('profileEdit.uploadFail') + '：' + (e.message || t('profileEdit.uploadRetry')));
     }
   };
 
@@ -111,7 +111,7 @@ const ProfileEdit = () => {
           </div>
           {hasFile && (
             <span style={{ fontSize: 12, color: '#52c41a', background: '#f0fff4', padding: '2px 8px', borderRadius: 10, fontWeight: 500 }}>
-              已上传
+              {t('profileEdit.uploaded')}
             </span>
           )}
         </div>
@@ -146,7 +146,7 @@ const ProfileEdit = () => {
           <p className="ant-upload-drag-icon">
             <InboxOutlined style={{ color: '#667eea', fontSize: 24 }} />
           </p>
-          <p style={{ color: '#667eea', fontSize: 12, margin: 0 }}>点击或拖拽上传（{hasFile ? '将替换' : '单个文件'}）</p>
+          <p style={{ color: '#667eea', fontSize: 12, margin: 0 }}>{t('profileEdit.uploadTip')}（{hasFile ? t('profileEdit.uploadTipReplace') : t('profileEdit.uploadTipSingle')}）</p>
           <p style={{ color: '#9ca3af', fontSize: 11, margin: '4px 0 0' }}>PDF / 图片</p>
         </Dragger>
       </div>
@@ -159,7 +159,7 @@ const ProfileEdit = () => {
     const cr = fileList.cr?.[0]?.url;
 
     if (!businessLicense && !(br && cr)) {
-      message.error('请上传营业执照，或同时上传BR和CR文件');
+      message.error(t('profileEdit.uploadRequirement'));
       return;
     }
 
@@ -176,7 +176,7 @@ const ProfileEdit = () => {
       // 用后端返回的 authStatus 同步本地（后端会自动判断：改了证照→pending，否则不变）
       const updatedUser = { ...user, ...res.data, name: values.name, company: values.company };
       localStorage.setItem('clientUser', JSON.stringify(updatedUser));
-      message.success('保存成功');
+      message.success(t('profileEdit.success'));
       navigate('/client/profile');
     } catch (e) {
       // 错误已由拦截器统一处理
@@ -201,9 +201,9 @@ const ProfileEdit = () => {
           onClick={() => navigate('/client/profile')}
           style={{ color: '#999', padding: '4px 0', marginBottom: 20 }}
         >
-          返回
+          {t('profileEdit.back')}
         </Button>
-        <h2 style={{ fontSize: 22, fontWeight: 600, color: '#333', marginBottom: 28 }}>编辑资料</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 600, color: '#333', marginBottom: 28 }}>{t('profileEdit.title')}</h2>
 
         {/* 认证状态卡片 */}
         <div style={{
@@ -234,31 +234,31 @@ const ProfileEdit = () => {
                 <span>{authReason}</span>
               </div>
             ) : authStatus === 'pending' ? (
-              <div style={{ fontSize: 13, color: '#92400e' }}>审核通常需要 1-2 个工作日，请耐心等待。</div>
+              <div style={{ fontSize: 13, color: '#92400e' }}>{t('profileEdit.pendingReviewTip')}</div>
             ) : authStatus === 'null' ? (
-              <div style={{ fontSize: 13, color: '#4b5563' }}>请上传资质材料完成认证，认证通过后即可使用完整功能。</div>
+              <div style={{ fontSize: 13, color: '#4b5563' }}>{t('profileEdit.notSubmittedTip')}</div>
             ) : null}
           </div>
         </div>
 
         {/* 个人信息 */}
         <div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#333', marginBottom: 16 }}>个人信息</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#333', marginBottom: 16 }}>{t('profileEdit.personalInfo')}</div>
           <Form form={form} layout="vertical" onFinish={handleSubmit} size="large" initialValues={user}>
             <div style={{ display: 'flex', gap: 24 }}>
-              <Form.Item name="name" label={<span style={{ fontWeight: 500, color: '#333' }}>姓名</span>} style={{ flex: 1 }}>
-                <Input prefix={<UserOutlined style={{ color: '#999' }} />} placeholder="请输入姓名" style={{ height: 48, borderRadius: 10 }} />
+              <Form.Item name="name" label={<span style={{ fontWeight: 500, color: '#333' }}>{t('profileEdit.name')}</span>} style={{ flex: 1 }}>
+                <Input prefix={<UserOutlined style={{ color: '#999' }} />} placeholder={t('profileEdit.namePlaceholder')} style={{ height: 48, borderRadius: 10 }} />
               </Form.Item>
-              <Form.Item name="phone" label={<span style={{ fontWeight: 500, color: '#333' }}>手机号</span>} style={{ flex: 1 }}>
-                <Input prefix={<span style={{ color: '#999' }}>📱</span>} placeholder="手机号不可修改" style={{ height: 48, borderRadius: 10 }} disabled />
+              <Form.Item name="phone" label={<span style={{ fontWeight: 500, color: '#333' }}>{t('profileEdit.phone')}</span>} style={{ flex: 1 }}>
+                <Input prefix={<span style={{ color: '#999' }}>📱</span>} placeholder={t('profileEdit.phoneDisabled')} style={{ height: 48, borderRadius: 10 }} disabled />
               </Form.Item>
             </div>
             <div style={{ display: 'flex', gap: 24 }}>
-              <Form.Item name="email" label={<span style={{ fontWeight: 500, color: '#333' }}>邮箱</span>} style={{ flex: 1 }}>
-                <Input prefix={<MailOutlined style={{ color: '#999' }} />} placeholder="请输入邮箱" style={{ height: 48, borderRadius: 10 }} />
+              <Form.Item name="email" label={<span style={{ fontWeight: 500, color: '#333' }}>{t('profileEdit.email')}</span>} style={{ flex: 1 }}>
+                <Input prefix={<MailOutlined style={{ color: '#999' }} />} placeholder={t('profileEdit.emailPlaceholder')} style={{ height: 48, borderRadius: 10 }} />
               </Form.Item>
-              <Form.Item name="company" label={<span style={{ fontWeight: 500, color: '#333' }}>公司名称</span>} style={{ flex: 1 }}>
-                <Input prefix={<BankOutlined style={{ color: '#999' }} />} placeholder="请输入公司名称" style={{ height: 48, borderRadius: 10 }} />
+              <Form.Item name="company" label={<span style={{ fontWeight: 500, color: '#333' }}>{t('profileEdit.company')}</span>} style={{ flex: 1 }}>
+                <Input prefix={<BankOutlined style={{ color: '#999' }} />} placeholder={t('profileEdit.companyPlaceholder')} style={{ height: 48, borderRadius: 10 }} />
               </Form.Item>
             </div>
           </Form>
@@ -266,19 +266,19 @@ const ProfileEdit = () => {
 
         {/* 资质材料 */}
         <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#333', marginBottom: 6 }}>资质材料</div>
-          <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 16 }}>请上传以下所有证件：</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#333', marginBottom: 6 }}>{t('profileEdit.qualification')}</div>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 16 }}>{t('profileEdit.qualificationTip')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
             {/* 组 1：营业执照 */}
             <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 4 }}>{t('profileEdit.businessLicense')} <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 12 }}>（必传）</span></div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>上传营业执照</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 4 }}>{t('profileEdit.businessLicense')} <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 12 }}>{t('profileEdit.brRequired')}</span></div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>{t('profileEdit.brUpload')}</div>
               <FileUploadCard keyName="businessLicense" label={t('profileEdit.businessLicense')} desc={t('profileEdit.businessLicenseDesc')} />
             </div>
             {/* 组 2：BR / CR 都要传 */}
             <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 4 }}>BR / CR <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 12 }}>（都要传）</span></div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>BR 商业登记证 + CR 公司注册证 都要上传</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 4 }}>{t('profileEdit.brCrRequired')} <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 12 }}>{t('profileEdit.brCrRequiredTip')}</span></div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>{t('profileEdit.brCrTip')}</div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <FileUploadCard keyName="br" label={t('profileEdit.br')} desc={t('profileEdit.businessLicenseDesc')} />
@@ -292,14 +292,14 @@ const ProfileEdit = () => {
         </div>
 
         <div style={{ marginTop: 32, display: 'flex', justifyContent: 'center', gap: 16, paddingTop: 24, borderTop: '1px dashed #e5e7eb' }}>
-          <Button onClick={() => navigate('/client/profile')} style={{ width: 140, height: 48, borderRadius: 24, fontSize: 15 }}>{t('app.cancel')}</Button>
+          <Button onClick={() => navigate('/client/profile')} style={{ width: 140, height: 48, borderRadius: 24, fontSize: 15 }}>{t('profileEdit.cancel')}</Button>
           <Button
             type="primary"
             loading={loading}
             onClick={() => form.submit()}
             style={{ width: 180, height: 48, borderRadius: 24, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', fontSize: 15, fontWeight: 500 }}
           >
-            {t('app.submit')}
+            {t('profileEdit.submit')}
           </Button>
         </div>
       </div>

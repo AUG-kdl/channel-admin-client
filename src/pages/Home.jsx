@@ -142,7 +142,7 @@ const TodoStatus = ({ hasTodo, t }) => (
   </div>
 );
 
-const Home = () => {
+  const Home = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [loading, setLoading] = useState(true);
@@ -156,6 +156,13 @@ const Home = () => {
   const [todoList, setTodoList] = useState([]);
   // 各模块待办状态（用于底部操作指引）{ deposit, exchange, withdrawal }
   const [moduleTodos, setModuleTodos] = useState({ deposit: false, exchange: false, withdrawal: false });
+  // 登录成功后弹欢迎
+  useEffect(() => {
+    if (localStorage.getItem('justLoggedIn') === '1') {
+      localStorage.removeItem('justLoggedIn');
+      setTimeout(() => message.success(t('login.welcomeBack')), 100);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchRates = async () => {
@@ -422,8 +429,11 @@ const Home = () => {
                   />
                 </div>
               </div>
-              <div style={{ textAlign: 'center', marginTop: 18, paddingTop: 16, borderTop: '1px solid #f4f5f7', fontSize: 14, color: '#9ca3af' }}>
+              <div style={{ textAlign: 'center', marginTop: 18, paddingTop: 16, borderTop: '1px solid #f4f5f7', fontSize: 14, color: '#333' }}>
                 {t('home.currentRate').replace('{from}', fromCurrency).replace('{rate}', getRate(fromCurrency, toCurrency)).replace('{to}', toCurrency)}
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: '#c0c4cc' }}>
+                {t('home.rateDisclaimer')}
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, message } from 'antd';
+import { Form, Input, Button, message, Select } from 'antd';
 import { LockOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'umi';
 import { clientAuth, email } from '@/services/api';
@@ -73,15 +73,17 @@ const ForgotPassword = () => {
       }}>
         {/* 语言切换 */}
         <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 10 }}>
-          <select
+          <Select
             value={locale}
-            onChange={(e) => { localStorage.setItem(STORAGE_KEY, e.target.value); setLocale(e.target.value); }}
-            style={{ width: 120, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: 14, cursor: 'pointer' }}
-          >
-            {LANGS.map(l => (
-              <option key={l.value} value={l.value} style={{ color: '#333' }}>{l.flag} {l.label}</option>
-            ))}
-          </select>
+            onChange={(v) => { localStorage.setItem(STORAGE_KEY, v); setLocale(v); }}
+            size="small"
+            style={{ width: 140 }}
+            options={LANGS.map(l => ({ value: l.value, label: (
+              <span style={{ fontSize: 14 }}>
+                <span style={{ marginRight: 6 }}>{l.flag}</span>{l.label}
+              </span>
+            )}))}
+          />
         </div>
 
         {/* 左侧品牌区域 */}
