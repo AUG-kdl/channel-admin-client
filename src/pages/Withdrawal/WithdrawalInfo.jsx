@@ -92,6 +92,7 @@ const WithdrawalInfo = () => {
   const regionMap = {
     mainland: t('withdrawalInfo.mainland'),
     hk: t('withdrawalInfo.hk'),
+    overseas: t('withdrawalInfo.overseas'),
   };
   const s = statusMap[detail.status] || {};
   const files = Array.isArray(detail.proofFiles) ? detail.proofFiles : [];

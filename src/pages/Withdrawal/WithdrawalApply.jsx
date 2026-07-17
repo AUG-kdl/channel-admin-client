@@ -96,6 +96,7 @@ const WithdrawalApply = () => {
                 <Radio.Group>
                   <Radio value="mainland">{t('withdrawalApply.mainland')}</Radio>
                   <Radio value="hk">{t('withdrawalApply.hk')}</Radio>
+                  <Radio value="overseas">{t('withdrawalApply.overseas')}</Radio>
                 </Radio.Group>
               </Form.Item>
 

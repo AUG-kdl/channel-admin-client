@@ -40,6 +40,7 @@ const ExchangeDetail = () => {
       content: <div style={{ color: '#f5222d' }}>{t('exchangeDetail.confirmContent')}</div>,
       okText: t('exchangeDetail.okConfirm'),
       cancelText: t('app.cancel'),
+      okButtonProps: { loading: submitting },
       onOk: async () => {
         try {
           setSubmitting(true);

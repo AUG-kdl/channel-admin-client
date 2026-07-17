@@ -47,6 +47,7 @@ const Withdrawal = () => {
   const REGION_MAP = {
     mainland: t('withdrawalList.region_mainland'),
     hk: t('withdrawalList.region_hk'),
+    overseas: t('withdrawalList.region_overseas'),
   };
 
   const fetchData = async (params = {}) => {
@@ -179,6 +180,7 @@ const Withdrawal = () => {
               <Select placeholder={t('withdrawalList.all')} allowClear style={{ width: 280, height: 36 }} options={[
                 { value: 'mainland', label: t('withdrawalList.region_mainland') },
                 { value: 'hk', label: t('withdrawalList.region_hk') },
+                { value: 'overseas', label: t('withdrawalList.region_overseas') },
               ]} />
             </Form.Item>
             <Form.Item label={t('withdrawalList.currency')} name="currency" style={{ marginBottom: 12 }}>
