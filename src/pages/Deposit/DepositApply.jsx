@@ -92,7 +92,7 @@ const DepositApply = () => {
   const handleUpload = async (file) => {
     setUploading(true);
     try {
-      const res = await upload([file]);
+      const res = await upload([file], 'deposit');
       const data = Array.isArray(res.data) ? res.data : [res.data];
       const newFile = {
         uid: file.uid,
@@ -316,7 +316,7 @@ const DepositApply = () => {
             {/* 物流信息 —— 非必填 */}
             <Form.Item label={t('depositApply.logisticsInfo')}>
               <Dragger
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
                 beforeUpload={file => { handleUploadSingle(file, setLogisticsFileList, setLogisticsUploading); return false; }}
                 fileList={logisticsFileList}
                 onRemove={file => handleRemoveSingleByUid(file.uid, setLogisticsFileList)}

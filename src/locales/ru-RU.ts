@@ -328,7 +328,7 @@ export default {
     logisticsInfo: 'Логистика',
     uploadHint: 'Нажмите или перетащите файл',
     uploadHintAgreement: 'PDF, Excel, Word, до 10МБ',
-    uploadHintLogistics: 'PDF, изображения, до 10МБ',
+    uploadHintLogistics: 'PDF, изображения, Word, до 10МБ',
     submitApplication: 'Отправить заявку',
     success: 'Заявка отправлена',
   },

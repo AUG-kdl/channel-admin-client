@@ -325,7 +325,7 @@ export default {
     logisticsInfo: '物流信息',
     uploadHint: '点击或拖拽文件上传',
     uploadHintAgreement: '支持 PDF、Excel、Word，单个文件不超过 10MB',
-    uploadHintLogistics: '支持 PDF、图片，单个文件不超过 10MB',
+    uploadHintLogistics: '支持 PDF、图片、Word，单个文件不超过 10MB',
     success: '申请成功',
     file: '文件',
     proofLabel: '入金凭证（水单）',

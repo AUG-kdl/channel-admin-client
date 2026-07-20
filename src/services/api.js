@@ -139,12 +139,13 @@ export const email = {
   sendResetCode: (email) => api.post('/email/send-reset-code', { email }),
 };
 
-// 文件上传
-export const upload = (files) => {
+// 文件上传（dir 可选：deposit/withdrawal/profile）
+export const upload = (files, dir) => {
   const formData = new FormData();
   const fileArray = Array.isArray(files) ? files : [files];
   fileArray.forEach((file) => formData.append('files', file));
-  return api.post('/upload', formData, {
+  const url = dir ? `/upload?dir=${encodeURIComponent(dir)}` : '/upload';
+  return api.post(url, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };

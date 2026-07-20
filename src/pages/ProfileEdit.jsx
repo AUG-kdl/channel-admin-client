@@ -74,7 +74,7 @@ const ProfileEdit = () => {
 
   const handleUpload = async (key, file) => {
     try {
-      const res = await upload(file);
+      const res = await upload(file, 'profile');
       const url = res.data?.url || res.url || (Array.isArray(res.data) ? res.data[0]?.url : null);
       if (url) {
         setFileList(prev => ({ ...prev, [key]: [{

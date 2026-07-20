@@ -328,7 +328,7 @@ export default {
     logisticsInfo: 'Logistics Info',
     uploadHint: 'Click or drag files to upload',
     uploadHintAgreement: 'Supports PDF, Excel, Word, up to 10MB each',
-    uploadHintLogistics: 'Supports PDF, images, up to 10MB each',
+    uploadHintLogistics: 'Supports PDF, images, Word, up to 10MB each',
     submitApplication: 'Submit Application',
     success: 'Application submitted',
   },
